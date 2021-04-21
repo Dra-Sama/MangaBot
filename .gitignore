@@ -1,0 +1,7 @@
+## Cache
+__pycache__/
+alembic
+
+##PyCharm
+.idea/
+.vscode
