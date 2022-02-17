@@ -1,5 +1,4 @@
 aiohttp==3.7.4.post0
 Pyrogram==1.2.9
 beautifulsoup4==4.10.0
-dataclasses==0.8
 Pillow==9.0.1
