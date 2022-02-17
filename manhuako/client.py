@@ -36,14 +36,13 @@ class ManhuaKoClient(ClientSession):
     search_url = urljoin(base_url.geturl(), "manga")
     search_param = 'mq'
     
-    def __init__(self, *args, cache=False, **kwargs):
-        self.cache = cache
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    async def get_url(self, file_name, url, *args, **kwargs):
+    async def get_url(self, file_name, url, *args, cache=False, **kwargs):
         path = Path(f'cache/{file_name}')
         os.makedirs(path.parent, exist_ok=True)
-        if self.cache:
+        if cache:
             try:
                 content = open(path, 'rb').read()
             except FileNotFoundError:
@@ -138,7 +137,7 @@ class ManhuaKoClient(ClientSession):
         for picture in manhua_chapter.pictures:
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
-            await self.get_url(file_name, picture)
+            await self.get_url(file_name, picture, cache=True)
             i += 1
             
         return Path('cache') / folder_name

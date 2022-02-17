@@ -5,3 +5,7 @@ alembic
 ##PyCharm
 .idea/
 .vscode
+
+.env
+cache
+bot.session
