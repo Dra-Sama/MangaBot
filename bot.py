@@ -10,6 +10,7 @@ from typing import Dict
 
 manhuas: Dict[str, ManhuaCard] = {}
 chapters: Dict[str, ManhuaChapter] = {}
+pdfs: Dict[str, str] = {}
 manhuako = ManhuaKoClient()
 bot = Client('bot',
              api_id=int(os.getenv('API_ID')),
@@ -46,9 +47,12 @@ async def chapter_click(client, callback):
     chapter = chapters[callback.data]
     pictures_folder = await manhuako.download_pictures(chapter)
     
-    pdf = fld2pdf(pictures_folder, f'{chapter.manhua.name} - {chapter.name}')
-    
-    await bot.send_document(callback.from_user.id, pdf)
+    if chapter.url not in pdfs:
+        pdf = fld2pdf(pictures_folder, f'{chapter.manhua.name} - {chapter.name}')
+        message = await bot.send_document(callback.from_user.id, pdf)
+        pdfs[chapter.url] = message.document.file_id
+    else:
+        message = await bot.send_document(callback.from_user.id, pdfs[chapter.url])
 
 
 @bot.on_callback_query()
