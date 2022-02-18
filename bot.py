@@ -1,3 +1,5 @@
+import re
+
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
@@ -7,10 +9,12 @@ import os
 from pyrogram import Client
 from typing import Dict
 
+from pagination import Pagination
 
 manhuas: Dict[str, ManhuaCard] = {}
 chapters: Dict[str, ManhuaChapter] = {}
 pdfs: Dict[str, str] = {}
+paginations: Dict[int, Pagination]
 manhuako = ManhuaKoClient()
 bot = Client('bot',
              api_id=int(os.getenv('API_ID')),
@@ -30,17 +34,34 @@ async def on_message(client, message: Message):
                            ]))
 
 
-async def manhua_click(client, callback: CallbackQuery):
+async def manhua_click(client, callback: CallbackQuery, pagination: Pagination = None):
+    if pagination is None:
+        pagination = Pagination()
+        paginations[pagination.id] = pagination
+
     manhua = manhuas[callback.data]
-    results = await manhuako.get_chapters(manhua)
+    results = await manhuako.get_chapters(manhua, pagination.page)
     
     for result in results:
         chapters[result.unique()] = result
     
-    await bot.send_photo(callback.from_user.id, manhua.picture_url, f'{manhua.name}\n'
-                                                                    f'{manhua.url}', reply_markup=InlineKeyboardMarkup([
+    buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton(result.name, result.unique())] for result in results
-    ]))
+    ] + [
+        [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')],
+        [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
+    ])
+    
+    if pagination.message is None:
+        message = await bot.send_photo(callback.from_user.id, manhua.picture_url, f'{manhua.name}\n'
+                                                                        f'{manhua.url}', reply_markup=buttons)
+        pagination.message = message
+    else:
+        await bot.edit_message_reply_markup(
+            callback.from_user.id,
+            pagination.message.message_id,
+            reply_markup=buttons
+        )
 
 
 async def chapter_click(client, callback):
@@ -55,12 +76,25 @@ async def chapter_click(client, callback):
         message = await bot.send_document(callback.from_user.id, pdfs[chapter.url])
 
 
+async def pagination_click(client: Client, callback: CallbackQuery):
+    pagination_id, page = map(int, callback.data.split('_'))
+    pagination = paginations[pagination_id]
+    pagination.page = page
+    await manhua_click(client, callback, pagination)
+    
+
+def is_pagination_data(data: str):
+    return re.match(r'\d+_\d+', data) and int(data.split('_')[0]) in paginations
+
+
 @bot.on_callback_query()
 async def on_callback_query(client, callback: CallbackQuery):
     if callback.data in manhuas:
         await manhua_click(client, callback)
     elif callback.data in chapters:
         await chapter_click(client, callback)
+    elif is_pagination_data(callback.data):
+        await pagination_click(client, callback)
     else:
         await bot.answer_callback_query(callback.id, 'This is an old button, please redo the search', show_alert=True)
 
