@@ -9,3 +9,4 @@ alembic
 .env
 cache
 bot.session
+/test.db

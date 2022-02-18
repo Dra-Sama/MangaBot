@@ -9,6 +9,7 @@ import os
 from pyrogram import Client
 from typing import Dict
 
+from models.db import DB, ChapterFile
 from pagination import Pagination
 
 manhuas: Dict[str, ManhuaCard] = {}
@@ -72,14 +73,17 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
 
 async def chapter_click(client, callback):
     chapter = chapters[callback.data]
-    pictures_folder = await manhuako.download_pictures(chapter)
+    db = DB()
     
-    if chapter.url not in pdfs:
+    chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
+    
+    if not chapterFile:
+        pictures_folder = await manhuako.download_pictures(chapter)
         pdf = fld2pdf(pictures_folder, f'{chapter.manhua.name} - {chapter.name}')
         message = await bot.send_document(callback.from_user.id, pdf)
-        pdfs[chapter.url] = message.document.file_id
+        await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id))
     else:
-        message = await bot.send_document(callback.from_user.id, pdfs[chapter.url])
+        message = await bot.send_document(callback.from_user.id, chapterFile.file_id)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
