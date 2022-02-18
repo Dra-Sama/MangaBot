@@ -119,4 +119,6 @@ async def on_callback_query(client, callback: CallbackQuery):
         await pagination_click(client, callback)
     else:
         await bot.answer_callback_query(callback.id, 'This is an old button, please redo the search', show_alert=True)
+        return
+    await callback.answer()
 
