@@ -50,10 +50,11 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
     
     prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
     next_ = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
+    footer = [prev + next_] if pagination.page > 1 else [next_]
     
-    buttons = InlineKeyboardMarkup([
+    buttons = InlineKeyboardMarkup(footer + [
         [InlineKeyboardButton(result.name, result.unique())] for result in results
-    ] + ([prev] if pagination.page > 1 else [prev, next_]))
+    ] + footer)
     
     if pagination.message is None:
         message = await bot.send_photo(callback.from_user.id,
