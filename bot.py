@@ -39,22 +39,27 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
         pagination = Pagination()
         paginations[pagination.id] = pagination
 
-    manhua = manhuas[callback.data]
-    results = await manhuako.get_chapters(manhua, pagination.page)
+    if pagination.manhua is None:
+        manhua = manhuas[callback.data]
+        pagination.manhua = manhua
+        
+    results = await manhuako.get_chapters(pagination.manhua, pagination.page)
     
     for result in results:
         chapters[result.unique()] = result
     
     prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
-    next = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
+    next_ = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
     
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton(result.name, result.unique())] for result in results
-    ] + [prev] if pagination.page > 1 else [prev, next])
+    ] + ([prev] if pagination.page > 1 else [prev, next_]))
     
     if pagination.message is None:
-        message = await bot.send_photo(callback.from_user.id, manhua.picture_url, f'{manhua.name}\n'
-                                                                        f'{manhua.url}', reply_markup=buttons)
+        message = await bot.send_photo(callback.from_user.id,
+                                       pagination.manhua.picture_url,
+                                       f'{pagination.manhua.name}\n'
+                                       f'{pagination.manhua.url}', reply_markup=buttons)
         pagination.message = message
     else:
         await bot.edit_message_reply_markup(
