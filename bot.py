@@ -14,7 +14,7 @@ from pagination import Pagination
 manhuas: Dict[str, ManhuaCard] = {}
 chapters: Dict[str, ManhuaChapter] = {}
 pdfs: Dict[str, str] = {}
-paginations: Dict[int, Pagination]
+paginations: Dict[int, Pagination] = {}
 manhuako = ManhuaKoClient()
 bot = Client('bot',
              api_id=int(os.getenv('API_ID')),
@@ -45,12 +45,12 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
     for result in results:
         chapters[result.unique()] = result
     
+    prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
+    next = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
+    
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton(result.name, result.unique())] for result in results
-    ] + [
-        [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')],
-        [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
-    ])
+    ] + [prev] if pagination.page > 1 else [prev, next])
     
     if pagination.message is None:
         message = await bot.send_photo(callback.from_user.id, manhua.picture_url, f'{manhua.name}\n'
