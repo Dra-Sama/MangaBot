@@ -6,8 +6,13 @@ import asyncio as aio
 from bot import bot
 from models import DB
 
-loop = aio.new_event_loop()
-db = DB()
-loop.run_until_complete(db.connect())
-bot.run()
+
+async def async_main():
+    db = DB()
+    await db.connect()
+    bot.run()
+
+if __name__ == '__main__':
+    loop = aio.new_event_loop()
+    loop.run_until_complete(async_main())
 
