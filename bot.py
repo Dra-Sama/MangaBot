@@ -89,8 +89,20 @@ async def pagination_click(client: Client, callback: CallbackQuery):
     await manhua_click(client, callback, pagination)
     
 
-def is_pagination_data(data: str):
-    return re.match(r'\d+_\d+', data) and int(data.split('_')[0]) in paginations
+def is_pagination_data(callback: CallbackQuery):
+    data = callback.data
+    match = re.match(r'\d+_\d+', data)
+    if not match:
+        return False
+    pagination_id = int(data.split('_')[0])
+    if pagination_id not in paginations:
+        return False
+    pagination = paginations[pagination_id]
+    if pagination.message.chat.id != callback.from_user.id:
+        return False
+    if pagination.message.message_id != callback.message.message_id:
+        return False
+    return True
 
 
 @bot.on_callback_query()
@@ -99,7 +111,7 @@ async def on_callback_query(client, callback: CallbackQuery):
         await manhua_click(client, callback)
     elif callback.data in chapters:
         await chapter_click(client, callback)
-    elif is_pagination_data(callback.data):
+    elif is_pagination_data(callback):
         await pagination_click(client, callback)
     else:
         await bot.answer_callback_query(callback.id, 'This is an old button, please redo the search', show_alert=True)
