@@ -33,7 +33,7 @@ class ManhuaChapter:
 class ManhuaKoClient(ClientSession):
     
     base_url = urlparse("https://manhuako.com/")
-    search_url = urljoin(base_url.geturl(), "manga")
+    search_url = urljoin(base_url.geturl(), "home/search/")
     search_param = 'mq'
     
     def __init__(self, *args, **kwargs):

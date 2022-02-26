@@ -26,6 +26,9 @@ bot = Client('bot',
 @bot.on_message()
 async def on_message(client, message: Message):
     results = await manhuako.search(message.text)
+    if not results:
+        await bot.send_message(message.chat.id, "No manhua found for given query.")
+        return
     for result in results:
         manhuas[result.unique()] = result
     await bot.send_message(message.chat.id,
