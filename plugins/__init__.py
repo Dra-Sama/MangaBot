@@ -1,2 +1,2 @@
 from .client import MangaClient, MangaCard, MangaChapter
-from .mangako import ManhuaKoClient
+from .manhuako import ManhuaKoClient
