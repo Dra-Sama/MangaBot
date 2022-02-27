@@ -12,7 +12,7 @@ from typing import Dict, Tuple
 from models.db import DB, ChapterFile
 from pagination import Pagination
 
-manhuas: Dict[str, MangaCard] = {}
+mangas: Dict[str, MangaCard] = {}
 chapters: Dict[str, MangaChapter] = {}
 pdfs: Dict[str, str] = {}
 paginations: Dict[int, Pagination] = {}
@@ -42,10 +42,10 @@ async def plugin_click(client, callback: CallbackQuery):
     manga_client, query = queries[callback.data]
     results = await manga_client.search(query)
     if not results:
-        await bot.send_message(callback.from_user.id, "No manhua found for given query.")
+        await bot.send_message(callback.from_user.id, "No manga found for given query.")
         return
     for result in results:
-        manhuas[result.unique()] = result
+        mangas[result.unique()] = result
     await bot.send_message(callback.from_user.id,
                            "This is the result of your search",
                            reply_markup=InlineKeyboardMarkup([
@@ -53,16 +53,16 @@ async def plugin_click(client, callback: CallbackQuery):
                            ]))
 
 
-async def manhua_click(client, callback: CallbackQuery, pagination: Pagination = None):
+async def manga_click(client, callback: CallbackQuery, pagination: Pagination = None):
     if pagination is None:
         pagination = Pagination()
         paginations[pagination.id] = pagination
 
-    if pagination.manhua is None:
-        manhua = manhuas[callback.data]
-        pagination.manhua = manhua
+    if pagination.manga is None:
+        manga = mangas[callback.data]
+        pagination.manga = manga
         
-    results = await pagination.manhua.client.get_chapters(pagination.manhua, pagination.page)
+    results = await pagination.manga.client.get_chapters(pagination.manga, pagination.page)
     
     for result in results:
         chapters[result.unique()] = result
@@ -77,9 +77,9 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
     
     if pagination.message is None:
         message = await bot.send_photo(callback.from_user.id,
-                                       pagination.manhua.picture_url,
-                                       f'{pagination.manhua.name}\n'
-                                       f'{pagination.manhua.url}', reply_markup=buttons)
+                                       pagination.manga.picture_url,
+                                       f'{pagination.manga.name}\n'
+                                       f'{pagination.manga.url}', reply_markup=buttons)
         pagination.message = message
     else:
         await bot.edit_message_reply_markup(
@@ -97,7 +97,7 @@ async def chapter_click(client, callback):
     
     if not chapterFile:
         pictures_folder = await chapter.client.download_pictures(chapter)
-        pdf = fld2pdf(pictures_folder, f'{chapter.manhua.name} - {chapter.name}')
+        pdf = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
         message = await bot.send_document(callback.from_user.id, pdf)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id))
     else:
@@ -108,7 +108,7 @@ async def pagination_click(client: Client, callback: CallbackQuery):
     pagination_id, page = map(int, callback.data.split('_'))
     pagination = paginations[pagination_id]
     pagination.page = page
-    await manhua_click(client, callback, pagination)
+    await manga_click(client, callback, pagination)
     
 
 def is_pagination_data(callback: CallbackQuery):
@@ -131,8 +131,8 @@ def is_pagination_data(callback: CallbackQuery):
 async def on_callback_query(client, callback: CallbackQuery):
     if callback.data in queries:
         await plugin_click(client, callback)
-    elif callback.data in manhuas:
-        await manhua_click(client, callback)
+    elif callback.data in mangas:
+        await manga_click(client, callback)
     elif callback.data in chapters:
         await chapter_click(client, callback)
     elif is_pagination_data(callback):

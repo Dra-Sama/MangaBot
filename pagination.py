@@ -13,4 +13,4 @@ class Pagination:
         Pagination.pagination_id += 1
         self.page = 1
         self.message: Message = None
-        self.manhua: MangaCard = None
+        self.manga: MangaCard = None

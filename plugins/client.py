@@ -1,13 +1,10 @@
 import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List
 
 from aiohttp import ClientSession
 from pathlib import Path
-from bs4 import BeautifulSoup
-from urllib.parse import quote_plus, urlparse, urljoin, quote
-import re
 
 
 @dataclass
@@ -26,7 +23,7 @@ class MangaChapter:
     client: "MangaClient"
     name: str
     url: str
-    manhua: MangaCard
+    manga: MangaCard
     pictures: List[str]
     
     def unique(self):
@@ -56,41 +53,39 @@ class MangaClient(ClientSession, ABC):
             content = await response.read()
         return content
 
-    async def set_pictures(self, manhua_chapter: MangaChapter):
-        requests_url = manhua_chapter.url
-        file_name = f'pictures_{manhua_chapter.manhua.name}_chapter_{manhua_chapter.name}.html'
+    async def set_pictures(self, manga_chapter: MangaChapter):
+        requests_url = manga_chapter.url
+        file_name = f'pictures_{manga_chapter.manga.name}_chapter_{manga_chapter.name}.html'
 
         content = await self.get_url(file_name, requests_url)
 
-        manhua_chapter.pictures = self.pictures_from_chapters(content)
+        manga_chapter.pictures = self.pictures_from_chapters(content)
 
-        return manhua_chapter
+        return manga_chapter
 
-    async def download_pictures(self, manhua_chapter: MangaChapter):
-        if not manhua_chapter.pictures:
-            await self.set_pictures(manhua_chapter)
+    async def download_pictures(self, manga_chapter: MangaChapter):
+        if not manga_chapter.pictures:
+            await self.set_pictures(manga_chapter)
 
-        folder_name = f'{manhua_chapter.manhua.name}/{manhua_chapter.name}'
+        folder_name = f'{manga_chapter.manga.name}/{manga_chapter.name}'
         i = 0
-        for picture in manhua_chapter.pictures:
+        for picture in manga_chapter.pictures:
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
             await self.get_url(file_name, picture, cache=True)
             i += 1
 
-        return Path(f'cache/{MangaChapter.client.name}') / folder_name
+        return Path(f'cache/{manga_chapter.client.name}') / folder_name
 
     @abstractmethod
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_chapters(self, manhua_card: MangaCard, page: int = 1) -> List[MangaChapter]:
+    async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
         raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def pictures_from_chapters(content: bytes):
         raise NotImplementedError
-
-

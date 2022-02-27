@@ -9,7 +9,7 @@ from plugins.client import MangaClient, MangaCard, MangaChapter
 
 class ManhuaKoClient(MangaClient):
 
-    base_url = urlparse("https://manhuako.com/")
+    base_url = urlparse("https://mangako.com/")
     search_url = urljoin(base_url.geturl(), "home/search/")
     search_param = 'mq'
 
@@ -21,17 +21,17 @@ class ManhuaKoClient(MangaClient):
 
         cards = bs.find_all("div", {"class": "card"})
 
-        manhuas = [card.findNext('a', {'class': 'white-text'}) for card in cards]
-        names = [manhua.string for manhua in manhuas]
-        url = [manhua.get('href') for manhua in manhuas]
+        mangas = [card.findNext('a', {'class': 'white-text'}) for card in cards]
+        names = [manga.string for manga in mangas]
+        url = [manga.get('href') for manga in mangas]
 
         images = [card.findNext('img').get('src') for card in cards]
 
-        manhuas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
+        mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
-        return manhuas
+        return mangas
 
-    def chapters_from_page(self, page: bytes, manhua: MangaCard = None):
+    def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
         lis = bs.find_all("li", {"class": "collection-item"})
@@ -41,7 +41,7 @@ class ManhuaKoClient(MangaClient):
         links = [item.get('href') for item in items]
         texts = [item.string for item in items]
 
-        return list(map(lambda x: MangaChapter(self, x[0], x[1], manhua, []), zip(texts, links)))
+        return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
     @staticmethod
     def pictures_from_chapters(content: bytes):
@@ -69,11 +69,11 @@ class ManhuaKoClient(MangaClient):
 
         return self.mangas_from_page(content)
 
-    async def get_chapters(self, manhua_card: MangaCard, page: int = 1) -> List[MangaChapter]:
+    async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
 
-        request_url = f'{manhua_card.url}/page/{page}'
-        file_name = f'chapters_{manhua_card.name}_page_{page}.html'
+        request_url = f'{manga_card.url}/page/{page}'
+        file_name = f'chapters_{manga_card.name}_page_{page}.html'
 
         content = await self.get_url(file_name, request_url)
 
-        return self.chapters_from_page(content, manhua_card)
+        return self.chapters_from_page(content, manga_card)
