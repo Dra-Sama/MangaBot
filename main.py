@@ -8,7 +8,7 @@ async def async_main():
     await db.connect()
 
 if __name__ == '__main__':
-    loop = aio.new_event_loop()
+    loop = aio.get_event_loop_policy().get_event_loop()
     loop.run_until_complete(async_main())
     bot.run()
 
