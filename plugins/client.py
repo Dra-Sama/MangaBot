@@ -78,7 +78,7 @@ class MangaClient(ClientSession, ABC):
             await self.get_url(file_name, picture, cache=True)
             i += 1
 
-        return Path('cache') / folder_name
+        return Path(f'cache/{MangaChapter.client.name}') / folder_name
 
     @abstractmethod
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
