@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from pyrogram.types import Message
 
-from manhuako import ManhuaCard
+from plugins import MangaCard
 
 
 class Pagination:
@@ -13,4 +13,4 @@ class Pagination:
         Pagination.pagination_id += 1
         self.page = 1
         self.message: Message = None
-        self.manhua: ManhuaCard = None
+        self.manhua: MangaCard = None

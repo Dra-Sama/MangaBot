@@ -1,7 +1,7 @@
 aiohttp==3.7.4.post0
 Pyrogram~=1.4.7
 beautifulsoup4~=4.8.0
-Pillow~=8.0.1
+Pillow
 tgcrypto
 sqlmodel~=0.0.6
 asyncpg

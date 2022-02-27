@@ -10,3 +10,5 @@ alembic
 cache
 bot.session
 /test.db
+
+venv

@@ -3,20 +3,25 @@ import re
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from manhuako import ManhuaKoClient, ManhuaCard, ManhuaChapter
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter
 import os
 
 from pyrogram import Client
-from typing import Dict
+from typing import Dict, Tuple
 
 from models.db import DB, ChapterFile
 from pagination import Pagination
 
-manhuas: Dict[str, ManhuaCard] = {}
-chapters: Dict[str, ManhuaChapter] = {}
+manhuas: Dict[str, MangaCard] = {}
+chapters: Dict[str, MangaChapter] = {}
 pdfs: Dict[str, str] = {}
 paginations: Dict[int, Pagination] = {}
-manhuako = ManhuaKoClient()
+queries: Dict[str, Tuple[MangaClient, str]] = {}
+
+plugins: Dict[str, MangaClient] = {
+    "Manhuako": ManhuaKoClient()
+}
+
 bot = Client('bot',
              api_id=int(os.getenv('API_ID')),
              api_hash=os.getenv('API_HASH'),
@@ -25,13 +30,23 @@ bot = Client('bot',
 
 @bot.on_message()
 async def on_message(client, message: Message):
-    results = await manhuako.search(message.text)
+    for identifier, manga_client in plugins.items():
+        queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
+    await bot.send_message(message.chat.id, "Select search plugin", reply_markup=InlineKeyboardMarkup([
+        [InlineKeyboardButton(identifier, callback_data=f"query_{identifier}_{hash(message.text)}")
+         for identifier, manga_client in plugins.items()]
+    ]))
+
+
+async def plugin_click(client, callback: CallbackQuery):
+    manga_client, query = queries[callback.data]
+    results = await manga_client.search(query)
     if not results:
-        await bot.send_message(message.chat.id, "No manhua found for given query.")
+        await bot.send_message(callback.from_user.id, "No manhua found for given query.")
         return
     for result in results:
         manhuas[result.unique()] = result
-    await bot.send_message(message.chat.id,
+    await bot.send_message(callback.from_user.id,
                            "This is the result of your search",
                            reply_markup=InlineKeyboardMarkup([
                                [InlineKeyboardButton(result.name, callback_data=result.unique())] for result in results
@@ -47,7 +62,7 @@ async def manhua_click(client, callback: CallbackQuery, pagination: Pagination =
         manhua = manhuas[callback.data]
         pagination.manhua = manhua
         
-    results = await manhuako.get_chapters(pagination.manhua, pagination.page)
+    results = await pagination.manhua.client.get_chapters(pagination.manhua, pagination.page)
     
     for result in results:
         chapters[result.unique()] = result
@@ -81,7 +96,7 @@ async def chapter_click(client, callback):
     chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
     
     if not chapterFile:
-        pictures_folder = await manhuako.download_pictures(chapter)
+        pictures_folder = await chapter.client.download_pictures(chapter)
         pdf = fld2pdf(pictures_folder, f'{chapter.manhua.name} - {chapter.name}')
         message = await bot.send_document(callback.from_user.id, pdf)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id))
@@ -114,7 +129,9 @@ def is_pagination_data(callback: CallbackQuery):
 
 @bot.on_callback_query()
 async def on_callback_query(client, callback: CallbackQuery):
-    if callback.data in manhuas:
+    if callback.data in queries:
+        await plugin_click(client, callback)
+    elif callback.data in manhuas:
         await manhua_click(client, callback)
     elif callback.data in chapters:
         await chapter_click(client, callback)

@@ -1,7 +1,3 @@
-from pyrogram import Client, filters, idle
-
-from manhuako import ManhuaKoClient
-
 import asyncio as aio
 from bot import bot
 from models import DB
@@ -12,7 +8,7 @@ async def async_main():
     await db.connect()
 
 if __name__ == '__main__':
-    loop = aio.get_event_loop()
+    loop = aio.new_event_loop()
     loop.run_until_complete(async_main())
     bot.run()
 
