@@ -9,12 +9,16 @@ from plugins.client import MangaClient, MangaCard, MangaChapter
 
 class ManhuaKoClient(MangaClient):
 
-    base_url = urlparse("https://mangako.com/")
-    search_url = urljoin(base_url.geturl(), "home/search/")
+    base_url = urlparse("https://manhuako.com/")
+    search_url = urljoin(base_url.geturl(), "home/search")
     search_param = 'mq'
 
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
+    }
+
     def __init__(self, *args, name="Manhuako", **kwargs):
-        super().__init__(*args, name=name, **kwargs)
+        super().__init__(*args, name=name, headers=self.headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
