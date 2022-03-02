@@ -3,7 +3,7 @@ import re
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient
 import os
 
 from pyrogram import Client
@@ -19,7 +19,8 @@ paginations: Dict[int, Pagination] = {}
 queries: Dict[str, Tuple[MangaClient, str]] = {}
 
 plugins: Dict[str, MangaClient] = {
-    "Manhuako": ManhuaKoClient()
+    "ManhuaKo": ManhuaKoClient(),
+    "Manhuaplus": ManhuaPlusClient()
 }
 
 bot = Client('bot',
@@ -63,6 +64,10 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
         pagination.manga = manga
         
     results = await pagination.manga.client.get_chapters(pagination.manga, pagination.page)
+
+    if not results:
+        await callback.answer("Ups, no chapters there.", show_alert=True)
+        return
     
     for result in results:
         chapters[result.unique()] = result

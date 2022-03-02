@@ -38,18 +38,28 @@ class MangaClient(ClientSession, ABC):
         super().__init__(*args, **kwargs)
         self.name = name
 
-    async def get_url(self, file_name, url, *args, cache=False, **kwargs):
+    async def get_url(self, file_name, url, *args, cache=False, method='get', data=None, **kwargs):
         path = Path(f'cache/{self.name}/{file_name}')
         os.makedirs(path.parent, exist_ok=True)
         if cache:
             try:
                 content = open(path, 'rb').read()
             except FileNotFoundError:
-                response = await self.get(url, *args, **kwargs)
+                if method == 'get':
+                    response = await self.get(url, *args, **kwargs)
+                elif method == 'post':
+                    response = await self.post(url, data=data or {}, **kwargs)
+                else:
+                    raise ValueError
                 content = await response.read()
                 open(path, 'wb').write(content)
         else:
-            response = await self.get(url, *args, **kwargs)
+            if method == 'get':
+                response = await self.get(url, *args, **kwargs)
+            elif method == 'post':
+                response = await self.post(url, data=data or {}, **kwargs)
+            else:
+                raise ValueError
             content = await response.read()
         return content
 
