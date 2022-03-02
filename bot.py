@@ -23,6 +23,11 @@ plugins: Dict[str, MangaClient] = {
     "Manhuaplus": ManhuaPlusClient()
 }
 
+
+def split_list(li):
+    return [li[x: x+2] for x in range(0, len(li), 2)]
+
+
 bot = Client('bot',
              api_id=int(os.getenv('API_ID')),
              api_hash=os.getenv('API_HASH'),
@@ -33,10 +38,10 @@ bot = Client('bot',
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
         queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
-    await bot.send_message(message.chat.id, "Select search plugin", reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton(identifier, callback_data=f"query_{identifier}_{hash(message.text)}")
-         for identifier, manga_client in plugins.items()]
-    ]))
+    await bot.send_message(message.chat.id, "Select search plugin", reply_markup=InlineKeyboardMarkup(
+        split_list([InlineKeyboardButton(identifier, callback_data=f"query_{identifier}_{hash(message.text)}")
+         for identifier, manga_client in plugins.items()])
+    ))
 
 
 async def plugin_click(client, callback: CallbackQuery):
