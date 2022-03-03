@@ -104,14 +104,19 @@ async def chapter_click(client, callback):
     db = DB()
     
     chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
+
+    caption = '\n'.join([
+        f'{chapter.manga.name} - {chapter.name}',
+        f'{chapter.url}'
+    ])
     
     if not chapterFile:
         pictures_folder = await chapter.client.download_pictures(chapter)
         pdf = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
-        message = await bot.send_document(callback.from_user.id, pdf)
+        message = await bot.send_document(callback.from_user.id, pdf, caption=caption)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id))
     else:
-        message = await bot.send_document(callback.from_user.id, chapterFile.file_id)
+        message = await bot.send_document(callback.from_user.id, chapterFile.file_id, caption=caption)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
