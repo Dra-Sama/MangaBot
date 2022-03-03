@@ -7,7 +7,7 @@ from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, Manhua
 import os
 
 from pyrogram import Client
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 from models.db import DB, ChapterFile
 from pagination import Pagination
@@ -17,6 +17,7 @@ chapters: Dict[str, MangaChapter] = {}
 pdfs: Dict[str, str] = {}
 paginations: Dict[int, Pagination] = {}
 queries: Dict[str, Tuple[MangaClient, str]] = {}
+full_pages: Dict[str, List[str]] = {}
 
 plugins: Dict[str, MangaClient] = {
     "ManhuaKo": ManhuaKoClient(),
@@ -73,17 +74,22 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
     if not results:
         await callback.answer("Ups, no chapters there.", show_alert=True)
         return
-    
+
+    full_page_key = f'full_page_{hash("".join([result.unique() for result in results]))}'
+    full_pages[full_page_key] = []
     for result in results:
         chapters[result.unique()] = result
-    
+        full_pages[full_page_key].append(result.unique())
+
     prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
     next_ = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
     footer = [prev + next_] if pagination.page > 1 else [next_]
+
+    full_page = [[InlineKeyboardButton('Full Page', full_page_key)]]
     
     buttons = InlineKeyboardMarkup(footer + [
         [InlineKeyboardButton(result.name, result.unique())] for result in results
-    ] + footer)
+    ] + full_page + footer)
     
     if pagination.message is None:
         message = await bot.send_photo(callback.from_user.id,
@@ -124,6 +130,13 @@ async def pagination_click(client: Client, callback: CallbackQuery):
     pagination = paginations[pagination_id]
     pagination.page = page
     await manga_click(client, callback, pagination)
+
+
+async def full_page_click(client: Client, callback: CallbackQuery):
+    chapters_data = full_pages[callback.data]
+    for chapter_data in reversed(chapters_data):
+        callback.data = chapter_data
+        await chapter_click(client, callback)
     
 
 def is_pagination_data(callback: CallbackQuery):
@@ -150,6 +163,8 @@ async def on_callback_query(client, callback: CallbackQuery):
         await manga_click(client, callback)
     elif callback.data in chapters:
         await chapter_click(client, callback)
+    elif callback.data in full_pages:
+        await full_page_click(client, callback)
     elif is_pagination_data(callback):
         await pagination_click(client, callback)
     else:
