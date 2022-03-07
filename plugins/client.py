@@ -1,7 +1,7 @@
 import os
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import List
+from typing import List, AsyncIterable
 
 from aiohttp import ClientSession
 from pathlib import Path
@@ -38,10 +38,10 @@ class MangaClient(ClientSession, ABC):
         super().__init__(*args, **kwargs)
         self.name = name
 
-    async def get_url(self, file_name, url, *args, cache=False, method='get', data=None, **kwargs):
-        path = Path(f'cache/{self.name}/{file_name}')
-        os.makedirs(path.parent, exist_ok=True)
+    async def get_url(self, url, *args, file_name=None, cache=False, method='get', data=None, **kwargs):
         if cache:
+            path = Path(f'cache/{self.name}/{file_name}')
+            os.makedirs(path.parent, exist_ok=True)
             try:
                 content = open(path, 'rb').read()
             except FileNotFoundError:
@@ -65,9 +65,8 @@ class MangaClient(ClientSession, ABC):
 
     async def set_pictures(self, manga_chapter: MangaChapter):
         requests_url = manga_chapter.url
-        file_name = f'pictures_{manga_chapter.manga.name}_chapter_{manga_chapter.name}.html'
 
-        content = await self.get_url(file_name, requests_url)
+        content = await self.get_url(requests_url)
 
         manga_chapter.pictures = self.pictures_from_chapters(content)
 
@@ -82,7 +81,7 @@ class MangaClient(ClientSession, ABC):
         for picture in manga_chapter.pictures:
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
-            await self.get_url(file_name, picture, cache=True)
+            await self.get_url(picture, file_name=file_name, cache=True)
             i += 1
 
         return Path(f'cache/{manga_chapter.client.name}') / folder_name
@@ -93,6 +92,14 @@ class MangaClient(ClientSession, ABC):
 
     @abstractmethod
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def contains_url(self, url: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
         raise NotImplementedError
 
     @staticmethod

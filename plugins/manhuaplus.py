@@ -1,5 +1,4 @@
-from pathlib import Path
-from typing import List
+from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
 from bs4 import BeautifulSoup
@@ -68,17 +67,27 @@ class ManhuaPlusClient(MangaClient):
         if query:
             request_url += f'?{self.search_param}={query}&post_type=wp-manga'
 
-        file_name = f'search_{query}_page_{page}.html'
-
-        content = await self.get_url(file_name, request_url)
+        content = await self.get_url(request_url)
 
         return self.mangas_from_page(content)
 
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
 
         request_url = f'{manga_card.url}{self.chapters}'
-        file_name = f'chapters_{manga_card.name}_page_{page}.html'
 
-        content = await self.get_url(file_name, request_url, method='post')
+        content = await self.get_url(request_url, method='post')
 
         return self.chapters_from_page(content, manga_card)[(page - 1) * 20:page * 20]
+
+    async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
+        manga_card = MangaCard(self, 'temp', manga_url, '')
+
+        request_url = f'{manga_card.url}{self.chapters}'
+
+        content = await self.get_url(request_url, method='post')
+
+        for chapter in self.chapters_from_page(content, manga_card):
+            yield chapter
+
+    async def contains_url(self, url: str):
+        return url.startswith(self.base_url.geturl())

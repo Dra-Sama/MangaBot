@@ -1,4 +1,6 @@
+import asyncio
 import re
+from dataclasses import dataclass
 
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
@@ -6,10 +8,10 @@ from img2pdf.core import fld2pdf
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient
 import os
 
-from pyrogram import Client
+from pyrogram import Client, filters
 from typing import Dict, Tuple, List
 
-from models.db import DB, ChapterFile
+from models.db import DB, ChapterFile, Subscription, LastChapter
 from pagination import Pagination
 
 mangas: Dict[str, MangaCard] = {}
@@ -18,6 +20,7 @@ pdfs: Dict[str, str] = {}
 paginations: Dict[int, Pagination] = {}
 queries: Dict[str, Tuple[MangaClient, str]] = {}
 full_pages: Dict[str, List[str]] = {}
+favourites: Dict[str, str] = {}
 
 plugins: Dict[str, MangaClient] = {
     "ManhuaKo": ManhuaKoClient(),
@@ -35,7 +38,7 @@ bot = Client('bot',
              bot_token=os.getenv('BOT_TOKEN'))
 
 
-@bot.on_message()
+@bot.on_message(filters=filters.private)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
         queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
@@ -81,13 +84,23 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
         chapters[result.unique()] = result
         full_pages[full_page_key].append(result.unique())
 
+    db = DB()
+    subs = await db.get(Subscription, (pagination.manga.url, callback.from_user.id))
+
     prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
     next_ = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
     footer = [prev + next_] if pagination.page > 1 else [next_]
 
+    fav = [[InlineKeyboardButton(
+        "Unsubscribe" if subs else "Subscribe",
+        f"{'unfav' if subs else 'fav'}_{pagination.manga.unique()}"
+    )]]
+    favourites[f"fav_{pagination.manga.unique()}"] = pagination.manga.url
+    favourites[f"unfav_{pagination.manga.unique()}"] = pagination.manga.url
+
     full_page = [[InlineKeyboardButton('Full Page', full_page_key)]]
     
-    buttons = InlineKeyboardMarkup(footer + [
+    buttons = InlineKeyboardMarkup(fav + footer + [
         [InlineKeyboardButton(result.name, result.unique())] for result in results
     ] + full_page + footer)
     
@@ -105,8 +118,8 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
         )
 
 
-async def chapter_click(client, callback):
-    chapter = chapters[callback.data]
+async def chapter_click(client, data, chat_id):
+    chapter = chapters[data]
     db = DB()
     
     chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
@@ -119,10 +132,10 @@ async def chapter_click(client, callback):
     if not chapterFile:
         pictures_folder = await chapter.client.download_pictures(chapter)
         pdf = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
-        message = await bot.send_document(callback.from_user.id, pdf, caption=caption)
+        message = await bot.send_document(chat_id, pdf, caption=caption)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id))
     else:
-        message = await bot.send_document(callback.from_user.id, chapterFile.file_id, caption=caption)
+        message = await bot.send_document(chat_id, chapterFile.file_id, caption=caption)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
@@ -135,9 +148,32 @@ async def pagination_click(client: Client, callback: CallbackQuery):
 async def full_page_click(client: Client, callback: CallbackQuery):
     chapters_data = full_pages[callback.data]
     for chapter_data in reversed(chapters_data):
-        callback.data = chapter_data
-        await chapter_click(client, callback)
-    
+        await chapter_click(client, chapter_data, callback.from_user.id)
+        await asyncio.sleep(0.1)
+
+
+async def favourite_click(client: Client, callback: CallbackQuery):
+    action, data = callback.data.split('_')
+    fav = action == 'fav'
+    manga_url = favourites[callback.data]
+    db = DB()
+    subs = await db.get(Subscription, (manga_url, callback.from_user.id))
+    if not subs and fav:
+        await db.add(Subscription(url=manga_url, user_id=callback.from_user.id))
+    if subs and not fav:
+        await db.erase(subs)
+    if subs and fav:
+        await callback.answer("You are already subscribed", show_alert=True)
+    if not subs and not fav:
+        await callback.answer("You are not subscribed", show_alert=True)
+    reply_markup = callback.message.reply_markup
+    keyboard = reply_markup.inline_keyboard
+    keyboard[0] = [InlineKeyboardButton(
+        "Unsubscribe" if fav else "Subscribe",
+        f"{'unfav' if fav else 'fav'}_{data}"
+    )]
+    await bot.edit_message_reply_markup(callback.from_user.id, callback.message.message_id, InlineKeyboardMarkup(keyboard))
+
 
 def is_pagination_data(callback: CallbackQuery):
     data = callback.data
@@ -162,9 +198,11 @@ async def on_callback_query(client, callback: CallbackQuery):
     elif callback.data in mangas:
         await manga_click(client, callback)
     elif callback.data in chapters:
-        await chapter_click(client, callback)
+        await chapter_click(client, callback.data, callback.from_user.id)
     elif callback.data in full_pages:
         await full_page_click(client, callback)
+    elif callback.data in favourites:
+        await favourite_click(client, callback)
     elif is_pagination_data(callback):
         await pagination_click(client, callback)
     else:
@@ -172,3 +210,65 @@ async def on_callback_query(client, callback: CallbackQuery):
         return
     await callback.answer()
 
+
+async def update_mangas():
+    db = DB()
+    subscriptions = await db.get_all(Subscription)
+    last_chapters = await db.get_all(LastChapter)
+
+    subs_dictionary = dict()
+    chapters_dictionary = dict()
+    client_dictionary = dict()
+
+    for subscription in subscriptions:
+        if subscription.url not in subs_dictionary:
+            subs_dictionary[subscription.url] = []
+        subs_dictionary[subscription.url].append(subscription.user_id)
+
+    for last_chapter in last_chapters:
+        chapters_dictionary[last_chapter.url] = last_chapter
+
+    for url in subs_dictionary:
+        for client in plugins.values():
+            if await client.contains_url(url):
+                client_dictionary[url] = client
+
+    updated = dict()
+
+    for url, client in client_dictionary.items():
+        if url not in chapters_dictionary:
+            agen = client.iter_chapters(url)
+            last_chapter = await anext(agen)
+            last_chapter = await anext(agen)
+            await db.add(LastChapter(url=url, chapter_url=last_chapter.url))
+        else:
+            last_chapter = chapters_dictionary[url]
+            new_chapters: List[MangaChapter] = []
+            async for chapter in client.iter_chapters(url):
+                if chapter.url == last_chapter.chapter_url:
+                    break
+                new_chapters.append(chapter)
+            new_chapters = new_chapters[:20]
+            if new_chapters:
+                last_chapter.chapter_url = new_chapters[0].url
+                await db.add(last_chapter)
+                updated[url] = list(reversed(new_chapters))
+                for chapter in new_chapters:
+                    if chapter.unique() not in chapters:
+                        chapters[chapter.unique()] = chapter
+
+    for url, chapter_list in updated.items():
+        for chapter in chapter_list:
+            for sub in subs_dictionary[url]:
+                await chapter_click(bot, chapter.unique(), sub)
+                await asyncio.sleep(0.1)
+
+
+async def manga_updater():
+    while True:
+        try:
+            await update_mangas()
+        except BaseException as e:
+            print(e)
+            raise e
+        await asyncio.sleep(60)

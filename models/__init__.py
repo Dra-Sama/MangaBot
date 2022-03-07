@@ -1,1 +1,1 @@
-from .db import DB, ChapterFile
+from .db import DB, ChapterFile, Subscription, LastChapter
