@@ -62,7 +62,7 @@ class TMOClient(MangaClient):
             content = await self.get_url(url)
             bs = BeautifulSoup(content, "html.parser")
         else:
-            url = response.url
+            url = str(response.url)
 
         ul = bs.find('div', {'class': 'viewer-container container'})
 
