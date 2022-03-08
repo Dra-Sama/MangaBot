@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient
 import os
 
 from pyrogram import Client, filters
@@ -24,7 +24,8 @@ favourites: Dict[str, str] = {}
 
 plugins: Dict[str, MangaClient] = {
     "ManhuaKo": ManhuaKoClient(),
-    "Manhuaplus": ManhuaPlusClient()
+    "Manhuaplus": ManhuaPlusClient(),
+    "TMO": TMOClient()
 }
 
 
