@@ -25,6 +25,11 @@ class LastChapter(SQLModel, table=True):
     chapter_url: str = Field
 
 
+class MangaName(SQLModel, table=True):
+    url: str = Field(primary_key=True)
+    name: str = Field
+
+
 class DB(metaclass=Singleton):
     
     def __init__(self):

@@ -77,8 +77,8 @@ class ManhuaKoClient(MangaClient):
 
         return self.chapters_from_page(content, manga_card)
 
-    async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
-        manga = MangaCard(self, 'temp', manga_url, '')
+    async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
+        manga = MangaCard(self, manga_name, manga_url, '')
         page = 1
         while page > 0:
             chapters = await self.get_chapters(manga_card=manga, page=page)

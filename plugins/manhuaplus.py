@@ -78,8 +78,8 @@ class ManhuaPlusClient(MangaClient):
 
         return self.chapters_from_page(content, manga_card)[(page - 1) * 20:page * 20]
 
-    async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
-        manga_card = MangaCard(self, 'temp', manga_url, '')
+    async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
+        manga_card = MangaCard(self, manga_name, manga_url, '')
 
         request_url = f'{manga_card.url}{self.chapters}'
 

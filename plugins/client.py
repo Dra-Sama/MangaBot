@@ -87,10 +87,13 @@ class MangaClient(ClientSession, ABC):
         for picture in manga_chapter.pictures:
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
-            await self.get_url(picture, file_name=file_name, cache=True)
+            await self.get_picture(picture, file_name=file_name, cache=True)
             i += 1
 
         return Path(f'cache/{manga_chapter.client.name}') / folder_name
+
+    async def get_picture(self, url, *args, **kwargs):
+        return await self.get_url(url, *args, **kwargs)
 
     @abstractmethod
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
@@ -105,7 +108,7 @@ class MangaClient(ClientSession, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
+    async def iter_chapters(self, manga_url: str, manga_name: str) -> AsyncIterable[MangaChapter]:
         raise NotImplementedError
 
     @abstractmethod
