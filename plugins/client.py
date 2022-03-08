@@ -14,6 +14,9 @@ class MangaCard:
     url: str
     picture_url: str
 
+    def get_url(self):
+        return self.url
+
     def unique(self):
         return str(hash(self.url))
     
@@ -25,6 +28,9 @@ class MangaChapter:
     url: str
     manga: MangaCard
     pictures: List[str]
+
+    def get_url(self):
+        return self.url
     
     def unique(self):
         return str(hash(self.url))

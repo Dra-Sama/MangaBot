@@ -25,6 +25,9 @@ class ManhuaPlusClient(MangaClient):
 
         cards = bs.find("div", {"class": "c-tabs-item"})
 
+        if not cards:
+            return []
+
         mangas = cards.find_all('div', {'class': 'tab-thumb'})
         names = [manga.a.get('title') for manga in mangas]
         url = [manga.a.get('href') for manga in mangas]

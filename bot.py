@@ -6,7 +6,7 @@ import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient
 import os
 
 from pyrogram import Client, filters
@@ -24,9 +24,10 @@ full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
 
 plugins: Dict[str, MangaClient] = {
-    "ManhuaKo": ManhuaKoClient(),
+    "MangaDex": MangaDexClient(),
+    "TMO": TMOClient(),
     "Manhuaplus": ManhuaPlusClient(),
-    "TMO": TMOClient()
+    "ManhuaKo": ManhuaKoClient()
 }
 
 
@@ -111,7 +112,7 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
             message = await bot.send_photo(callback.from_user.id,
                                            pagination.manga.picture_url,
                                            f'{pagination.manga.name}\n'
-                                           f'{pagination.manga.url}', reply_markup=buttons)
+                                           f'{pagination.manga.get_url()}', reply_markup=buttons)
             pagination.message = message
         except pyrogram.errors.BadRequest as e:
             file_name = f'pictures/{pagination.manga.unique()}.jpg'
@@ -119,7 +120,7 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
             message = await bot.send_photo(callback.from_user.id,
                                            f'./cache/{pagination.manga.client.name}/{file_name}',
                                            f'{pagination.manga.name}\n'
-                                           f'{pagination.manga.url}', reply_markup=buttons)
+                                           f'{pagination.manga.get_url()}', reply_markup=buttons)
             pagination.message = message
     else:
         await bot.edit_message_reply_markup(
@@ -137,7 +138,7 @@ async def chapter_click(client, data, chat_id):
 
     caption = '\n'.join([
         f'{chapter.manga.name} - {chapter.name}',
-        f'{chapter.url}'
+        f'{chapter.get_url()}'
     ])
     
     if not chapterFile:
