@@ -30,6 +30,12 @@ class MangaChapter:
         return str(hash(self.url))
 
 
+def clean(folder_name):
+    while '  ' in folder_name:
+        folder_name = folder_name.replace('  ', ' ')
+    return folder_name.replace(':', '')
+
+
 class MangaClient(ClientSession, ABC):
 
     def __init__(self, *args, name="client", **kwargs):
@@ -76,7 +82,7 @@ class MangaClient(ClientSession, ABC):
         if not manga_chapter.pictures:
             await self.set_pictures(manga_chapter)
 
-        folder_name = f'{manga_chapter.manga.name}/{manga_chapter.name}'
+        folder_name = f'{clean(manga_chapter.manga.name)}/{clean(manga_chapter.name)}'
         i = 0
         for picture in manga_chapter.pictures:
             ext = picture.split('.')[-1]
