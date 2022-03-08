@@ -2,6 +2,7 @@ import asyncio
 import re
 from dataclasses import dataclass
 
+import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
@@ -106,11 +107,20 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
     ] + full_page + footer)
     
     if pagination.message is None:
-        message = await bot.send_photo(callback.from_user.id,
-                                       pagination.manga.picture_url,
-                                       f'{pagination.manga.name}\n'
-                                       f'{pagination.manga.url}', reply_markup=buttons)
-        pagination.message = message
+        try:
+            message = await bot.send_photo(callback.from_user.id,
+                                           pagination.manga.picture_url,
+                                           f'{pagination.manga.name}\n'
+                                           f'{pagination.manga.url}', reply_markup=buttons)
+            pagination.message = message
+        except pyrogram.errors.BadRequest as e:
+            file_name = f'pictures/{pagination.manga.unique()}.jpg'
+            await pagination.manga.client.get_url(pagination.manga.picture_url, cache=True, file_name=file_name)
+            message = await bot.send_photo(callback.from_user.id,
+                                           f'./cache/{pagination.manga.client.name}/{file_name}',
+                                           f'{pagination.manga.name}\n'
+                                           f'{pagination.manga.url}', reply_markup=buttons)
+            pagination.message = message
     else:
         await bot.edit_message_reply_markup(
             callback.from_user.id,
@@ -237,25 +247,28 @@ async def update_mangas():
     updated = dict()
 
     for url, client in client_dictionary.items():
-        if url not in chapters_dictionary:
-            agen = client.iter_chapters(url)
-            last_chapter = await anext(agen)
-            await db.add(LastChapter(url=url, chapter_url=last_chapter.url))
-        else:
-            last_chapter = chapters_dictionary[url]
-            new_chapters: List[MangaChapter] = []
-            async for chapter in client.iter_chapters(url):
-                if chapter.url == last_chapter.chapter_url:
-                    break
-                new_chapters.append(chapter)
-            new_chapters = new_chapters[:20]
-            if new_chapters:
-                last_chapter.chapter_url = new_chapters[0].url
-                await db.add(last_chapter)
-                updated[url] = list(reversed(new_chapters))
-                for chapter in new_chapters:
-                    if chapter.unique() not in chapters:
-                        chapters[chapter.unique()] = chapter
+        try:
+            if url not in chapters_dictionary:
+                agen = client.iter_chapters(url)
+                last_chapter = await anext(agen)
+                await db.add(LastChapter(url=url, chapter_url=last_chapter.url))
+            else:
+                last_chapter = chapters_dictionary[url]
+                new_chapters: List[MangaChapter] = []
+                async for chapter in client.iter_chapters(url):
+                    if chapter.url == last_chapter.chapter_url:
+                        break
+                    new_chapters.append(chapter)
+                new_chapters = new_chapters[:20]
+                if new_chapters:
+                    last_chapter.chapter_url = new_chapters[0].url
+                    await db.add(last_chapter)
+                    updated[url] = list(reversed(new_chapters))
+                    for chapter in new_chapters:
+                        if chapter.unique() not in chapters:
+                            chapters[chapter.unique()] = chapter
+        except BaseException as e:
+            print(e)
 
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
@@ -270,5 +283,5 @@ async def manga_updater():
             await update_mangas()
         except BaseException as e:
             print(e)
-            raise e
+            # raise e
         await asyncio.sleep(60)

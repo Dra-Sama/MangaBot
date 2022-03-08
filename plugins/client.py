@@ -68,7 +68,7 @@ class MangaClient(ClientSession, ABC):
 
         content = await self.get_url(requests_url)
 
-        manga_chapter.pictures = self.pictures_from_chapters(content)
+        manga_chapter.pictures = await self.pictures_from_chapters(content)
 
         return manga_chapter
 
@@ -102,7 +102,6 @@ class MangaClient(ClientSession, ABC):
     async def iter_chapters(self, manga_url: str) -> AsyncIterable[MangaChapter]:
         raise NotImplementedError
 
-    @staticmethod
     @abstractmethod
-    def pictures_from_chapters(content: bytes):
+    async def pictures_from_chapters(self, content: bytes):
         raise NotImplementedError

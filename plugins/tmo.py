@@ -8,9 +8,9 @@ from plugins.client import MangaClient, MangaCard, MangaChapter
 
 class TMOClient(MangaClient):
 
-    base_url = urlparse("https://tmomanga.com/")
-    search_url = urljoin(base_url.geturl(), "biblioteca")
-    search_param = 'search'
+    base_url = urlparse("https://lectortmo.com/")
+    search_url = urljoin(base_url.geturl(), "library")
+    search_param = 'title'
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -22,13 +22,13 @@ class TMOClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        cards = bs.find_all("div", {"class": "manga_biblioteca"})
+        cards = bs.find_all("div", {"class": "element"})
 
         mangas = [card.a for card in cards]
-        names = [manga.string for manga in mangas]
-        url = [manga.get('href') for manga in mangas]
+        names = [card.findNext("div", {"class": "thumbnail-title"}).h4.get("title").strip() for card in cards]
+        url = [manga.get('href').strip() for manga in mangas]
 
-        images = [card.findNext('img').get('src') for card in cards]
+        images = [str(card.style).split("url('")[1].split("')")[0].strip() for card in cards]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -37,20 +37,25 @@ class TMOClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        lis = bs.find_all("li", {"class": "wp-manga-chapter"})
+        div = bs.find("div", {"id": "chapters"})
 
-        items = [li.findNext('a') for li in lis]
+        lis = div.select("li.list-group-item.upload-link")
 
-        links = [item.get('href') for item in items]
-        texts = [item.string.strip() for item in items]
+        texts = [li.findNext("a").text.strip().replace('\xa0', ' ') for li in lis]
+        links = [li.findNext("a", {"class": "btn btn-default btn-sm".split()}).get("href").strip() for li in lis]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    @staticmethod
-    def pictures_from_chapters(content: bytes):
+    async def pictures_from_chapters(self, content: bytes):
         bs = BeautifulSoup(content, "html.parser")
 
-        ul = bs.find("div", {"id": "images_chapter"})
+        url = bs.find("a", {"title": "Cascada"}).get('href')
+
+        content = await self.get_url(url)
+
+        bs = BeautifulSoup(content, "html.parser")
+
+        ul = bs.find('div', {'class': 'viewer-container container'})
 
         images = ul.find_all('img')
 
@@ -61,10 +66,10 @@ class TMOClient(MangaClient):
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
 
-        request_url = f'{self.search_url}'
+        request_url = f'{self.search_url}?_pg={page}'
 
         if query:
-            request_url += f'?{self.search_param}={query}'
+            request_url += f'&{self.search_param}={query}'
 
         content = await self.get_url(request_url)
 
