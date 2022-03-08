@@ -85,7 +85,7 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
         full_pages[full_page_key].append(result.unique())
 
     db = DB()
-    subs = await db.get(Subscription, (pagination.manga.url, callback.from_user.id))
+    subs = await db.get(Subscription, (pagination.manga.url, str(callback.from_user.id)))
 
     prev = [InlineKeyboardButton('<<', f'{pagination.id}_{pagination.page - 1}')]
     next_ = [InlineKeyboardButton('>>', f'{pagination.id}_{pagination.page + 1}')]
@@ -157,9 +157,9 @@ async def favourite_click(client: Client, callback: CallbackQuery):
     fav = action == 'fav'
     manga_url = favourites[callback.data]
     db = DB()
-    subs = await db.get(Subscription, (manga_url, callback.from_user.id))
+    subs = await db.get(Subscription, (manga_url, str(callback.from_user.id)))
     if not subs and fav:
-        await db.add(Subscription(url=manga_url, user_id=callback.from_user.id))
+        await db.add(Subscription(url=manga_url, user_id=str(callback.from_user.id)))
     if subs and not fav:
         await db.erase(subs)
     if subs and fav:
