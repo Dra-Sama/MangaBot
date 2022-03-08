@@ -46,7 +46,7 @@ class ManhuaKoClient(MangaClient):
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    async def pictures_from_chapters(self, content: bytes):
+    async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
         ul = bs.find("div", {"id": "pantallaCompleta"})

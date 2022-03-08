@@ -52,14 +52,17 @@ class TMOClient(MangaClient):
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    async def pictures_from_chapters(self, content: bytes):
+    async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        url = bs.find("a", {"title": "Cascada"}).get('href')
+        cascade = bs.find("a", {"title": "Cascada"})
 
-        content = await self.get_url(url)
-
-        bs = BeautifulSoup(content, "html.parser")
+        if cascade:
+            url = cascade.get('href')
+            content = await self.get_url(url)
+            bs = BeautifulSoup(content, "html.parser")
+        else:
+            url = response.url
 
         ul = bs.find('div', {'class': 'viewer-container container'})
 

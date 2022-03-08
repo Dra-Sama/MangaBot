@@ -72,9 +72,11 @@ class MangaClient(ClientSession, ABC):
     async def set_pictures(self, manga_chapter: MangaChapter):
         requests_url = manga_chapter.url
 
-        content = await self.get_url(requests_url)
+        response = await self.get(requests_url)
 
-        manga_chapter.pictures = await self.pictures_from_chapters(content)
+        content = await response.read()
+
+        manga_chapter.pictures = await self.pictures_from_chapters(content, response)
 
         return manga_chapter
 
@@ -112,5 +114,5 @@ class MangaClient(ClientSession, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def pictures_from_chapters(self, content: bytes):
+    async def pictures_from_chapters(self, content: bytes, response=None):
         raise NotImplementedError
