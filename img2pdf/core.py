@@ -16,6 +16,6 @@ def fld2pdf(folder: Path, out: str):
 
 def img2pdf(files: List[Path], out: Path):
     
-    im0: Image.Image = Image.open(files[0]).convert(mode='RGB', palette=1)
-    img_list = [Image.open(img).convert(mode='RGB', palette=1) for img in files[1:]]
-    im0.save(out, "PDF", resolution=100.0, save_all=True, append_images=img_list)
+    im0: Image.Image = Image.open(files[0])
+    img_list = [Image.open(img) for img in files[1:]]
+    im0.save(out, resolution=100.0, save_all=True, append_images=img_list)
