@@ -160,7 +160,10 @@ async def pagination_click(client: Client, callback: CallbackQuery):
 async def full_page_click(client: Client, callback: CallbackQuery):
     chapters_data = full_pages[callback.data]
     for chapter_data in reversed(chapters_data):
-        await chapter_click(client, chapter_data, callback.from_user.id)
+        try:
+            await chapter_click(client, chapter_data, callback.from_user.id)
+        except Exception as e:
+            print(e)
         await asyncio.sleep(0.1)
 
 
