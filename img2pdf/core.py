@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, BinaryIO
 from pathlib import Path
 import re
 
@@ -14,7 +14,7 @@ def fld2pdf(folder: Path, out: str):
     return pdf
 
 
-def new_img(path: Path) -> Image.Image:
+def new_img(path: BinaryIO) -> Image.Image:
     img = Image.open(path)
     if img.mode != 'RGB':
         img = img.convert('RGB')
@@ -22,6 +22,9 @@ def new_img(path: Path) -> Image.Image:
 
 
 def img2pdf(files: List[Path], out: Path):
-    im0: Image.Image = new_img(files[0])
-    img_list = [new_img(img) for img in files[1:]]
+    fds = [open(file, 'rb') for file in files]
+    im0: Image.Image = new_img(fds[0])
+    img_list = [new_img(img) for img in fds[1:]]
     im0.save(out, resolution=100.0, save_all=True, append_images=img_list)
+    for fd in fds:
+        fd.close()
