@@ -66,9 +66,14 @@ class MangaDexClient(MangaClient):
                 visited.add(chapter["attributes"]["chapter"])
                 chapters.append(chapter)
 
+        def chapter_name(c):
+            if c["attributes"]["title"]:
+                return f'{c["attributes"]["chapter"]} - {c["attributes"]["title"]}'
+            return f'{c["attributes"]["chapter"]}'
+
         ids = [chapter.get("id") for chapter in chapters]
         links = [f'https://api.mangadex.org/at-home/server/{chapter.get("id")}?forcePort443=false' for chapter in chapters]
-        texts = [f'{chapter["attributes"]["chapter"]} - {chapter["attributes"]["title"]}' for chapter in chapters]
+        texts = [chapter_name(chapter) for chapter in chapters]
 
         return list(map(lambda x: MangaDexMangaChapter(self, x[0], x[1], manga, [], x[2]), zip(texts, links, ids)))
 
