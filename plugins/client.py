@@ -19,8 +19,8 @@ class MangaCard:
 
     def unique(self):
         return str(hash(self.url))
-    
-    
+
+
 @dataclass
 class MangaChapter:
     client: "MangaClient"
@@ -31,7 +31,7 @@ class MangaChapter:
 
     def get_url(self):
         return self.url
-    
+
     def unique(self):
         return str(hash(self.url))
 
@@ -50,12 +50,16 @@ class MangaClient(ClientSession, ABC):
         super().__init__(*args, **kwargs)
         self.name = name
 
-    async def get_url(self, url, *args, file_name=None, cache=False, method='get', data=None, **kwargs):
+    async def get_url(self, url, *args, file_name=None, cache=False, req_content=True, method='get', data=None,
+                      **kwargs):
+        def response(): pass
+        response.status = "200"
         if cache:
             path = Path(f'cache/{self.name}/{file_name}')
             os.makedirs(path.parent, exist_ok=True)
             try:
-                content = open(path, 'rb').read()
+                with open(path, 'rb') as f:
+                    content = f.read()
             except FileNotFoundError:
                 if method == 'get':
                     response = await self.get(url, *args, **kwargs)
@@ -63,8 +67,10 @@ class MangaClient(ClientSession, ABC):
                     response = await self.post(url, data=data or {}, **kwargs)
                 else:
                     raise ValueError
-                content = await response.read()
-                open(path, 'wb').write(content)
+                if str(response.status).startswith('2'):
+                    content = await response.read()
+                    with open(path, 'wb') as f:
+                        f.write(content)
         else:
             if method == 'get':
                 response = await self.get(url, *args, **kwargs)
@@ -73,7 +79,10 @@ class MangaClient(ClientSession, ABC):
             else:
                 raise ValueError
             content = await response.read()
-        return content
+        if req_content:
+            return content
+        else:
+            return response
 
     async def set_pictures(self, manga_chapter: MangaChapter):
         requests_url = manga_chapter.url
@@ -95,7 +104,12 @@ class MangaClient(ClientSession, ABC):
         for picture in manga_chapter.pictures:
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
-            await self.get_picture(picture, file_name=file_name, cache=True)
+            for _ in range(3):
+                req = await self.get_picture(picture, file_name=file_name, cache=True, req_content=False)
+                if str(req.status).startswith('2'):
+                    break
+            else:
+                raise ValueError
             i += 1
 
         return Path(f'cache/{manga_chapter.client.name}') / folder_name
