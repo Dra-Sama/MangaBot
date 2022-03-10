@@ -33,7 +33,7 @@ class MangaName(SQLModel, table=True):
 class DB(metaclass=Singleton):
     
     def __init__(self):
-        dbname = os.getenv('DATABASE_URL')
+        dbname = os.getenv('DATABASE_URL_PRIMARY') or os.getenv('DATABASE_URL')
         if dbname.startswith('postgres://'):
             dbname = dbname.replace('postgres://', 'postgresql+asyncpg://', 1)
         if dbname.startswith('sqlite'):
