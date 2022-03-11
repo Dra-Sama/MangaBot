@@ -107,4 +107,4 @@ class TMOClient(MangaClient):
 
     async def get_picture(self, url, *args, **kwargs):
         headers = {'referer': url[1]}
-        await super(TMOClient, self).get_picture(url[0], *args, headers={**self.headers, **headers}, **kwargs)
+        return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.headers, **headers}, **kwargs)
