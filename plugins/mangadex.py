@@ -34,8 +34,9 @@ class MangaDexClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="MangaDex", **kwargs):
+    def __init__(self, *args, name="MangaDex", language="en", **kwargs):
         super().__init__(*args, name=name, headers=self.headers, **kwargs)
+        self.language = language
 
     def mangas_from_page(self, page: bytes):
         dt = json.loads(page.decode())
@@ -105,7 +106,7 @@ class MangaDexClient(MangaClient):
                       f'?limit={count}&offset={(page - 1) * count}&includes[' \
                       f']=scanlation_group&includes[]=user&order[volume]=desc&order[' \
                       f'chapter]=desc&contentRating[]=safe&contentRating[]=suggestive&contentRating[' \
-                      f']=erotica&contentRating[]=pornographic&translatedLanguage[]=en'
+                      f']=erotica&contentRating[]=pornographic&translatedLanguage[]={self.language}'
 
         content = await self.get_url(request_url)
 

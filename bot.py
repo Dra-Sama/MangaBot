@@ -24,10 +24,11 @@ full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
 
 plugins: Dict[str, MangaClient] = {
-    "MangaDex": MangaDexClient(),
-    "TMO": TMOClient(),
-    "Manhuaplus": ManhuaPlusClient(),
-    "ManhuaKo": ManhuaKoClient()
+    "[EN] MangaDex": MangaDexClient(),
+    "[EN] Manhuaplus": ManhuaPlusClient(),
+    "[ES] MangaDex": MangaDexClient(language="es-la"),
+    "[ES] ManhuaKo": ManhuaKoClient(),
+    "[ES] TMO": TMOClient()
 }
 
 
