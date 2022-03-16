@@ -290,6 +290,8 @@ async def update_mangas():
         except BaseException as e:
             print(f'An exception occurred getting new chapters: {e}')
 
+    print("got here")
+
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
             print(f'{chapter.manga.name} - {chapter.name}')
@@ -301,7 +303,7 @@ async def update_mangas():
 async def manga_updater():
     while True:
         print('Waiting 60 seconds')
-        await asyncio.sleep(60)
+        await asyncio.sleep(10)
         try:
             print('Updating Mangas')
             await update_mangas()
