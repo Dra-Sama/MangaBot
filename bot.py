@@ -279,12 +279,12 @@ async def update_mangas():
                         break
                     new_chapters.append(chapter)
                 new_chapters = new_chapters[:20]
-                print(new_chapters)
                 if new_chapters:
                     last_chapter.chapter_url = new_chapters[0].url
                     await db.add(last_chapter)
                     updated[url] = list(reversed(new_chapters))
                     for chapter in new_chapters:
+                        print(chapter.unique())
                         if chapter.unique() not in chapters:
                             chapters[chapter.unique()] = chapter
         except BaseException as e:
@@ -292,6 +292,7 @@ async def update_mangas():
 
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
+            print(f'{chapter.manga.name} - {chapter.name}')
             for sub in subs_dictionary[url]:
                 await chapter_click(bot, chapter.unique(), sub)
                 await asyncio.sleep(0.1)
