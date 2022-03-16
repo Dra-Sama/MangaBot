@@ -300,7 +300,8 @@ async def manga_updater():
     while True:
         await asyncio.sleep(60)
         try:
+            print('Updating Mangas')
             await update_mangas()
         except BaseException as e:
-            print(e)
+            print(f'An exception occurred during chapters update: {e}')
             # raise e
