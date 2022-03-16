@@ -264,7 +264,6 @@ async def update_mangas():
 
     for url, client in client_dictionary.items():
         try:
-            print(url)
             if url not in manga_dict:
                 continue
             manga_name = manga_dict[url].name
@@ -285,29 +284,26 @@ async def update_mangas():
                     await db.add(last_chapter)
                     updated[url] = list(reversed(new_chapters))
                     for chapter in new_chapters:
-                        print(chapter.unique())
                         if chapter.unique() not in chapters:
                             chapters[chapter.unique()] = chapter
         except BaseException as e:
             print(f'An exception occurred getting new chapters: {e}')
 
-    print("got here")
-
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
             print(f'{chapter.manga.name} - {chapter.name}')
             for sub in subs_dictionary[url]:
-                await chapter_click(bot, chapter.unique(), sub)
+                try:
+                    await chapter_click(bot, chapter.unique(), sub)
+                except BaseException as e:
+                    print(f'An exception occurred sending new chapter: {e}')
                 await asyncio.sleep(0.1)
 
 
 async def manga_updater():
     while True:
-        print('Waiting 60 seconds')
-        await asyncio.sleep(10)
+        await asyncio.sleep(60)
         try:
-            print('Updating Mangas')
             await update_mangas()
         except BaseException as e:
             print(f'An exception occurred during chapters update: {e}')
-            # raise e
