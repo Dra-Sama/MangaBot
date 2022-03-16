@@ -294,7 +294,7 @@ async def update_mangas():
             print(f'{chapter.manga.name} - {chapter.name}')
             for sub in subs_dictionary[url]:
                 try:
-                    await chapter_click(bot, chapter.unique(), sub)
+                    await chapter_click(bot, chapter.unique(), int(sub))
                 except BaseException as e:
                     print(f'An exception occurred sending new chapter: {e}')
                 await asyncio.sleep(0.1)
