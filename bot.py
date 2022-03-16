@@ -279,6 +279,7 @@ async def update_mangas():
                         break
                     new_chapters.append(chapter)
                 new_chapters = new_chapters[:20]
+                print(new_chapters)
                 if new_chapters:
                     last_chapter.chapter_url = new_chapters[0].url
                     await db.add(last_chapter)
