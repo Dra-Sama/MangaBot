@@ -287,7 +287,7 @@ async def update_mangas():
                         if chapter.unique() not in chapters:
                             chapters[chapter.unique()] = chapter
         except BaseException as e:
-            print(e)
+            print(f'An exception occurred getting new chapters: {e}')
 
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
@@ -298,6 +298,7 @@ async def update_mangas():
 
 async def manga_updater():
     while True:
+        print('Waiting 60 seconds')
         await asyncio.sleep(60)
         try:
             print('Updating Mangas')
