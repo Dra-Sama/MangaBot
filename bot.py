@@ -264,6 +264,7 @@ async def update_mangas():
 
     for url, client in client_dictionary.items():
         try:
+            print(url)
             if url not in manga_dict:
                 continue
             manga_name = manga_dict[url].name
