@@ -121,6 +121,7 @@ class MangaDexClient(MangaClient):
                 break
             for chapter in chapters:
                 yield chapter
+            page += 1
 
     async def contains_url(self, url: str):
         return url.startswith(self.base_url.geturl())
