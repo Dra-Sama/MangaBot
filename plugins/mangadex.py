@@ -45,7 +45,7 @@ class MangaDexClient(MangaClient):
 
         names = [list(card['attributes']['title'].values())[0] for card in cards]
         ids = [card["id"] for card in cards]
-        url = [f'https://api.mangadex.org/manga/{card["id"]}/feed' for card in cards]
+        url = [f'https://api.mangadex.org/manga/{card["id"]}/feed?translatedLanguage[]={self.language}' for card in cards]
 
         cover_filename = lambda x: list(filter(lambda y: y['type'] == 'cover_art', x))[0]['attributes']['fileName']
 
@@ -103,10 +103,10 @@ class MangaDexClient(MangaClient):
     async def get_chapters(self, manga_card: MangaCard, page: int = 1, count: int = 10) -> List[MangaChapter]:
 
         request_url = f'{manga_card.url}' \
-                      f'?limit={count}&offset={(page - 1) * count}&includes[' \
+                      f'&limit={count}&offset={(page - 1) * count}&includes[' \
                       f']=scanlation_group&includes[]=user&order[volume]=desc&order[' \
                       f'chapter]=desc&contentRating[]=safe&contentRating[]=suggestive&contentRating[' \
-                      f']=erotica&contentRating[]=pornographic&translatedLanguage[]={self.language}'
+                      f']=erotica&contentRating[]=pornographic'
 
         content = await self.get_url(request_url)
 
@@ -124,4 +124,4 @@ class MangaDexClient(MangaClient):
             page += 1
 
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl())
+        return url.startswith(self.base_url.geturl()) and (url.endswith(self.language) or self.language == 'en')
