@@ -1,8 +1,10 @@
 aiohttp==3.7.4.post0
 Pyrogram~=1.4.7
 beautifulsoup4~=4.8.0
-Pillow
+Pillow~=9.0.1
 tgcrypto
 sqlmodel~=0.0.6
 asyncpg
 aiosqlite
+fpdf2
+SQLAlchemy~=1.4.31
