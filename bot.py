@@ -42,6 +42,20 @@ bot = Client('bot',
              bot_token=os.getenv('BOT_TOKEN'))
 
 
+@bot.on_message(filters=filters.command(['refresh']))
+async def on_refresh(client: Client, message: Message):
+    if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document\
+            or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
+        return await message.reply("This command only works when it replies to a pdf file that bot sent to you")
+    replied = message.reply_to_message
+    db = DB()
+    chapter = await db.get_chapter_file_by_id(replied.document.file_id)
+    if not chapter:
+        return await message.reply("This file was already refreshed")
+    await db.erase(chapter)
+    return await message.reply("File refreshed successfully!")
+
+
 @bot.on_message(filters=filters.private)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():

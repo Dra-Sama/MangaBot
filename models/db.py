@@ -63,3 +63,8 @@ class DB(metaclass=Singleton):
         async with AsyncSession(self.engine) as session:  # type: AsyncSession
             async with session.begin():
                 await session.delete(other)
+
+    async def get_chapter_file_by_id(self, file_id: str):
+        async with AsyncSession(self.engine) as session:  # type: AsyncSession
+            statement = select(ChapterFile).where(ChapterFile.file_id == file_id)
+            return (await session.exec(statement=statement)).first()
