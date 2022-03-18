@@ -50,6 +50,7 @@ async def on_refresh(client: Client, message: Message):
     replied = message.reply_to_message
     db = DB()
     print(replied.document.file_id)
+    print(replied.document.file_unique_id)
     chapter = await db.get_chapter_file_by_id(replied.document.file_id)
     if not chapter:
         return await message.reply("This file was already refreshed")
