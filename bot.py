@@ -49,6 +49,7 @@ async def on_refresh(client: Client, message: Message):
         return await message.reply("This command only works when it replies to a pdf file that bot sent to you")
     replied = message.reply_to_message
     db = DB()
+    print(replied.document.file_id)
     chapter = await db.get_chapter_file_by_id(replied.document.file_id)
     if not chapter:
         return await message.reply("This file was already refreshed")
