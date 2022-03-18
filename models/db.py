@@ -13,6 +13,7 @@ T = TypeVar("T")
 class ChapterFile(SQLModel, table=True):
     url: str = Field(primary_key=True)
     file_id: str
+    file_unique_id: str
 
 
 class Subscription(SQLModel, table=True):
@@ -66,5 +67,5 @@ class DB(metaclass=Singleton):
 
     async def get_chapter_file_by_id(self, file_id: str):
         async with AsyncSession(self.engine) as session:  # type: AsyncSession
-            statement = select(ChapterFile).where(ChapterFile.file_id == file_id)
+            statement = select(ChapterFile).where(ChapterFile.file_unique_id == file_id)
             return (await session.exec(statement=statement)).first()

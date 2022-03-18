@@ -160,7 +160,8 @@ async def chapter_click(client, data, chat_id):
         pictures_folder = await chapter.client.download_pictures(chapter)
         pdf, thumb_path = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
         message = await bot.send_document(chat_id, pdf, caption=caption, thumb=thumb_path)
-        await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_unique_id))
+        await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id,
+                                 file_unique_id=message.document.file_unique_id))
     else:
         message = await bot.send_document(chat_id, chapterFile.file_id, caption=caption)
 
