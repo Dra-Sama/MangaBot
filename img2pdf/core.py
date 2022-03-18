@@ -1,3 +1,4 @@
+import os
 from typing import List, BinaryIO
 from pathlib import Path
 from fpdf import FPDF
@@ -12,13 +13,20 @@ def fld2pdf(folder: Path, out: str):
     
     files = [file for file in folder.glob(r'*') if re.match(r'.*\.(jpg|png|jpeg|webp)', file.name)]
     files.sort(key=lambda x: x.name)
+    thumbnail = Image.open(files[0]).convert('RGB')
+    tg_max_size = (300, 300)
+    thumbnail.thumbnail(tg_max_size)
+    thumb_path = folder / 'thumbnail' / f'thumbnail.jpg'
+    os.makedirs(thumb_path.parent, exist_ok=True)
+    thumbnail.save(thumb_path)
+    thumbnail.close()
     pdf = folder / f'{out}.pdf'
     try:
         img2pdf(files, pdf)
     except BaseException as e:
         print(f'Image to pdf failed with exception: {e}')
         old_img2pdf(files, pdf)
-    return pdf
+    return pdf, thumb_path
 
 
 def new_img(path: Path) -> Image.Image:
@@ -44,5 +52,6 @@ def img2pdf(files: List[Path], out: Path):
 
         pdf.image(imageFile, 0, 0, width, height)
 
+    pdf.set_title(out.stem)
     pdf.output(out, "F")
     del pdf
