@@ -42,7 +42,17 @@ bot = Client('bot',
              bot_token=os.getenv('BOT_TOKEN'))
 
 
-@bot.on_message(filters=filters.command(['refresh']))
+@bot.on_message(filters=filters.command(['start']) & filters.incoming)
+async def on_refresh(client: Client, message: Message):
+    await message.reply("Welcome to Tachiyomi?"
+                        ""
+                        "How to use? Just type the name of some manga you want to keep up to date."
+                        ""
+                        "For example:"
+                        "`Fire Force`")
+
+
+@bot.on_message(filters=filters.command(['refresh']) & filters.incoming)
 async def on_refresh(client: Client, message: Message):
     if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document\
             or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
@@ -56,7 +66,7 @@ async def on_refresh(client: Client, message: Message):
     return await message.reply("File refreshed successfully!")
 
 
-@bot.on_message(filters=filters.private)
+@bot.on_message(filters=filters.private & filters.text & filters.incoming)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
         queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
