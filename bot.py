@@ -44,11 +44,11 @@ bot = Client('bot',
 
 @bot.on_message(filters=filters.command(['start']) & filters.incoming)
 async def on_refresh(client: Client, message: Message):
-    await message.reply("Welcome to Tachiyomi?"
-                        ""
-                        "How to use? Just type the name of some manga you want to keep up to date."
-                        ""
-                        "For example:"
+    await message.reply("Welcome to Tachiyomi?\n"
+                        "\n"
+                        "How to use? Just type the name of some manga you want to keep up to date.\n"
+                        "\n"
+                        "For example:\n"
                         "`Fire Force`")
 
 
