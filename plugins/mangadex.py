@@ -81,6 +81,9 @@ class MangaDexClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         dt = json.loads(content)
 
+        if dt.get('result') == 'error':
+            return []
+
         base_url = dt['baseUrl']
         chapter_hash = dt['chapter']['hash']
         file_names = dt['chapter']['data']

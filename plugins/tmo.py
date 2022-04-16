@@ -1,4 +1,5 @@
 from typing import List, AsyncIterable
+from urllib import response
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
 from bs4 import BeautifulSoup
@@ -80,7 +81,11 @@ class TMOClient(MangaClient):
         if query:
             request_url += f'&{self.search_param}={query}'
 
-        content = await self.get_url(request_url)
+        response = await self.get_url(request_url, req_content=False)
+
+        print(response)
+
+        content = await response.read()
 
         return self.mangas_from_page(content)
 

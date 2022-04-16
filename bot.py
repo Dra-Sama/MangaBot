@@ -168,6 +168,10 @@ async def chapter_click(client, data, chat_id):
     
     if not chapterFile:
         pictures_folder = await chapter.client.download_pictures(chapter)
+        if not chapter.pictures:
+            message = await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
+            f', please check the chapter at the web\n\n{caption}')
+            return
         pdf, thumb_path = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
         message = await bot.send_document(chat_id, pdf, caption=caption, thumb=thumb_path)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id,
