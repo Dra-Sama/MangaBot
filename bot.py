@@ -1,3 +1,4 @@
+from ast import arg
 import asyncio
 import re
 from dataclasses import dataclass
@@ -23,12 +24,18 @@ queries: Dict[str, Tuple[MangaClient, str]] = {}
 full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
 
+def CF(cls, *args, **kwargs):
+    def factory():
+        return cls(*args, **kwargs)
+    return factory
+
+
 plugins: Dict[str, MangaClient] = {
-    "[EN] MangaDex": MangaDexClient(),
-    "[EN] Manhuaplus": ManhuaPlusClient(),
-    "[ES] MangaDex": MangaDexClient(language="es-la"),
-    "[ES] ManhuaKo": ManhuaKoClient(),
-    "[ES] TMO": TMOClient()
+    "[EN] MangaDex": CF(MangaDexClient),
+    "[EN] Manhuaplus": CF(ManhuaPlusClient),
+    "[ES] MangaDex": CF(MangaDexClient, language="es-la"),
+    "[ES] ManhuaKo": CF(ManhuaKoClient),
+    "[ES] TMO": CF(TMOClient)
 }
 
 
@@ -69,10 +76,11 @@ async def on_refresh(client: Client, message: Message):
 @bot.on_message(filters=filters.private & filters.text & filters.incoming)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
+        manga_client = manga_client()
         queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
     await bot.send_message(message.chat.id, "Select search plugin", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(identifier, callback_data=f"query_{identifier}_{hash(message.text)}")
-         for identifier, manga_client in plugins.items()])
+         for identifier in plugins.keys()])
     ))
 
 
@@ -286,6 +294,7 @@ async def update_mangas():
 
     for url in subs_dictionary:
         for client in plugins.values():
+            client = client()
             if await client.contains_url(url):
                 client_dictionary[url] = client
 
