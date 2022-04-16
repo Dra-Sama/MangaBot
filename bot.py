@@ -33,6 +33,7 @@ plugins: Dict[str, MangaClient] = {
     "[ES] TMO": TMOClient()
 }
 
+subsPaused = ["[ES] TMO"]
 
 def split_list(li):
     return [li[x: x+2] for x in range(0, len(li), 2)]
@@ -287,7 +288,9 @@ async def update_mangas():
         manga_dict[manga.url] = manga
 
     for url in subs_dictionary:
-        for client in plugins.values():
+        for ident, client in plugins.items():
+            if ident in subsPaused:
+                continue
             if await client.contains_url(url):
                 client_dictionary[url] = client
 
