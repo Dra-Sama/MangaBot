@@ -34,8 +34,8 @@ plugins: Dict[str, MangaClient] = {
     "[ES] TMO": TMOClient()
 }
 
-subsPaused = ["[ES] TMO"]
-# subsPaused = []
+# subsPaused = ["[ES] TMO"]
+subsPaused = []
 
 def split_list(li):
     return [li[x: x+2] for x in range(0, len(li), 2)]
@@ -322,6 +322,7 @@ async def update_mangas():
                     for chapter in new_chapters:
                         if chapter.unique() not in chapters:
                             chapters[chapter.unique()] = chapter
+            await asyncio.sleep(0.33)
         except BaseException as e:
             print(f'An exception occurred getting new chapters for url {url}: {e}')
 
