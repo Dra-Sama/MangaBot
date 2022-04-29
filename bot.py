@@ -34,8 +34,8 @@ plugins: Dict[str, MangaClient] = {
     "[ES] TMO": TMOClient()
 }
 
-# subsPaused = ["[ES] TMO"]
-subsPaused = []
+subsPaused = ["[ES] TMO"]
+# subsPaused = []
 
 def split_list(li):
     return [li[x: x+2] for x in range(0, len(li), 2)]
