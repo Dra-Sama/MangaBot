@@ -117,6 +117,9 @@ class MangaClient(ClientSession, ABC):
     async def get_picture(self, url, *args, **kwargs):
         return await self.get_url(url, *args, **kwargs)
 
+    async def check_updated_urls(self, urls: List[str]):
+        return urls, []
+
     @abstractmethod
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         raise NotImplementedError

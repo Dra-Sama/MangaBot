@@ -18,6 +18,7 @@ class TMOClient(MangaClient):
     base_url = urlparse("https://lectortmo.com/")
     search_url = urljoin(base_url.geturl(), "library")
     search_param = 'title'
+    latest_uploads = urljoin(base_url.geturl(), "latest_uploads")
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -52,6 +53,17 @@ class TMOClient(MangaClient):
         links = [li.findNext("a", {"class": "btn btn-default btn-sm".split()}).get("href").strip() for li in lis]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
+
+    def updates_from_page(self, page: bytes):
+        bs = BeautifulSoup(page, "html.parser")
+
+        trs = bs.find_all("tr", {"class": "upload-file-row"})
+
+        urls = [tr.td.a.get("href") for tr in trs]
+
+        return urls
+
+
 
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
@@ -117,3 +129,16 @@ class TMOClient(MangaClient):
     async def get_picture(self, url, *args, **kwargs):
         headers = {'referer': url[1]}
         return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.pre_headers, **headers}, **kwargs)
+
+    async def check_updated_urls(self, urls: List[str]):
+
+        content = await self.get_url(self.latest_uploads)
+
+        updates = self.updates_from_page(content)
+
+        s = set(updates)
+
+        updated = [url for url in urls if url in updates]
+        not_updated = [url for url in urls if url not in updates]
+
+        return updated, not_updated

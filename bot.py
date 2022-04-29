@@ -34,8 +34,8 @@ plugins: Dict[str, MangaClient] = {
     "[ES] TMO": TMOClient()
 }
 
-subsPaused = ["[ES] TMO"]
-# subsPaused = []
+# subsPaused = ["[ES] TMO"]
+subsPaused = []
 
 def split_list(li):
     return [li[x: x+2] for x in range(0, len(li), 2)]
@@ -275,7 +275,8 @@ async def update_mangas():
 
     subs_dictionary = dict()
     chapters_dictionary = dict()
-    client_dictionary = dict()
+    url_client_dictionary = dict()
+    client_url_dictionary = {client: set() for client in plugins.values()}
     manga_dict = dict()
 
     for subscription in subscriptions:
@@ -294,11 +295,17 @@ async def update_mangas():
             if ident in subsPaused:
                 continue
             if await client.contains_url(url):
-                client_dictionary[url] = client
+                url_client_dictionary[url] = client
+                client_url_dictionary[client].add(url)
 
+    for client, urls in client_url_dictionary.items():
+        updated, not_updated = await client.check_updated_urls(urls)
+        for url in not_updated:
+            del url_client_dictionary[url]
+    
     updated = dict()
 
-    for url, client in client_dictionary.items():
+    for url, client in url_client_dictionary.items():
         try:
             if url not in manga_dict:
                 continue
@@ -338,8 +345,8 @@ async def update_mangas():
 
 async def manga_updater():
     while True:
-        await asyncio.sleep(60)
         try:
             await update_mangas()
         except BaseException as e:
             print(f'An exception occurred during chapters update: {e}')
+        await asyncio.sleep(60)
