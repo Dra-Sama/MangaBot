@@ -30,12 +30,12 @@ class MangaDexClient(MangaClient):
 
     covers_url = urlparse("https://uploads.mangadex.org/covers")
 
-    headers = {
+    pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
     def __init__(self, *args, name="MangaDex", language="en", **kwargs):
-        super().__init__(*args, name=name, headers=self.headers, **kwargs)
+        super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
         self.language = language
 
     def mangas_from_page(self, page: bytes):

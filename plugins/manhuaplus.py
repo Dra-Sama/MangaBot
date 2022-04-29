@@ -13,12 +13,12 @@ class ManhuaPlusClient(MangaClient):
     search_param = 's'
     chapters = 'ajax/chapters/'
 
-    headers = {
+    pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
     def __init__(self, *args, name="Manhuaplus", **kwargs):
-        super().__init__(*args, name=name, headers=self.headers, **kwargs)
+        super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")

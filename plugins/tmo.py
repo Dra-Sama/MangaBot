@@ -19,12 +19,12 @@ class TMOClient(MangaClient):
     search_url = urljoin(base_url.geturl(), "library")
     search_param = 'title'
 
-    headers = {
+    pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
     def __init__(self, *args, name="TMO", **kwargs):
-        super().__init__(*args, name=name, headers=self.headers, **kwargs)
+        super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
@@ -83,7 +83,7 @@ class TMOClient(MangaClient):
 
         response = await self.get_url(request_url, req_content=False)
 
-        print(response)
+        # print(response)
 
         content = await response.read()
 
@@ -102,7 +102,11 @@ class TMOClient(MangaClient):
 
         request_url = f'{manga_card.url}'
 
-        content = await self.get_url(request_url)
+        response = await self.get_url(request_url, req_content=False)
+
+        print(response)
+
+        content = await response.read()
 
         for chapter in self.chapters_from_page(content, manga_card):
             yield chapter
@@ -112,4 +116,4 @@ class TMOClient(MangaClient):
 
     async def get_picture(self, url, *args, **kwargs):
         headers = {'referer': url[1]}
-        return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.headers, **headers}, **kwargs)
+        return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.pre_headers, **headers}, **kwargs)
