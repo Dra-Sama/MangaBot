@@ -87,10 +87,24 @@ async def on_subs(client: Client, message: Message):
         lines.append(f'<a href="{sub.url}">{sub.name}</a>')
         lines.append(f'`/cancel {sub.url}`')
         lines.append('')
+
+    if not lines:
+        return await message.reply("You have no subscriptions yet.")
     body = "\n".join(lines)
     await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
 
-@bot.on_message(filters=filters.private & filters.regex('^/') & filters.incoming)
+@bot.on_message(filters=filters.private & filters.incoming & filters.regex(r'^/cancel ([^ ]+)$'))
+async def on_cancel_command(client: Client, message: Message):
+    db = DB()
+    print(message.matches[0].group(1))
+    sub = await db.get(Subscription, (message.matches[0].group(1), message.from_user.id))
+    if not sub:
+        return await message.reply("You were not subscribed to that manga.")
+    await db.erase(sub)
+    return await message.reply("You will no longer receive updates for that manga.")
+    
+
+@bot.on_message(filters=filters.private & filters.regex(r'^/') & filters.incoming)
 async def on_unknown_command(client: Client, message: Message):
     await message.reply("Unknown command")
 
