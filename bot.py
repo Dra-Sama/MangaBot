@@ -90,6 +90,10 @@ async def on_subs(client: Client, message: Message):
     body = "\n".join(lines)
     await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
 
+@bot.on_message(filters=filters.private & filters.regex('^/') & filters.incoming)
+async def on_unknown_command(client: Client, message: Message):
+    await message.reply("Unknown command")
+
 @bot.on_message(filters=filters.private & filters.text & filters.incoming)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
