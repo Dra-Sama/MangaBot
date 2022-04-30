@@ -96,7 +96,6 @@ async def on_subs(client: Client, message: Message):
 @bot.on_message(filters=filters.private & filters.incoming & filters.regex(r'^/cancel ([^ ]+)$'))
 async def on_cancel_command(client: Client, message: Message):
     db = DB()
-    print(message.matches[0].group(1))
     sub = await db.get(Subscription, (message.matches[0].group(1), str(message.from_user.id)))
     if not sub:
         return await message.reply("You were not subscribed to that manga.")
