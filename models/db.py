@@ -69,3 +69,8 @@ class DB(metaclass=Singleton):
         async with AsyncSession(self.engine) as session:  # type: AsyncSession
             statement = select(ChapterFile).where(ChapterFile.file_unique_id == file_id)
             return (await session.exec(statement=statement)).first()
+
+    async def get_subs(self, user_id: str) -> List[MangaName]:
+        async with AsyncSession(self.engine) as session:
+            statement = select(MangaName).where(Subscription.user_id == user_id).where(Subscription.url == MangaName.url)
+            return (await session.exec(statement=statement)).all()

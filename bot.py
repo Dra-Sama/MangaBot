@@ -55,7 +55,7 @@ bot = Client('bot',
              bot_token=env_vars.get('BOT_TOKEN'))
 
 
-@bot.on_message(filters=filters.command(['start']) & filters.incoming)
+@bot.on_message(filters=filters.private & filters.command(['start']) & filters.incoming)
 async def on_refresh(client: Client, message: Message):
     await message.reply("Welcome to Tachiyomi?\n"
                         "\n"
@@ -65,7 +65,7 @@ async def on_refresh(client: Client, message: Message):
                         "`Fire Force`")
 
 
-@bot.on_message(filters=filters.command(['refresh']) & filters.incoming)
+@bot.on_message(filters=filters.private & filters.command(['refresh']) & filters.incoming)
 async def on_refresh(client: Client, message: Message):
     if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document\
             or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
@@ -78,6 +78,17 @@ async def on_refresh(client: Client, message: Message):
     await db.erase(chapter)
     return await message.reply("File refreshed successfully!")
 
+@bot.on_message(filters=filters.private & filters.command(['subs']) & filters.incoming)
+async def on_subs(client: Client, message: Message):
+    db = DB()
+    subs = await db.get_subs(message.from_user.id)
+    lines = []
+    for sub in subs:
+        lines.append(f'<a href="{sub.url}">{sub.name}</a>')
+        lines.append(f'`/cancel {sub.url}`')
+        lines.append('')
+    body = "\n".join(lines)
+    await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
 
 @bot.on_message(filters=filters.private & filters.text & filters.incoming)
 async def on_message(client, message: Message):
