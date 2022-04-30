@@ -81,7 +81,7 @@ async def on_refresh(client: Client, message: Message):
 @bot.on_message(filters=filters.private & filters.command(['subs']) & filters.incoming)
 async def on_subs(client: Client, message: Message):
     db = DB()
-    subs = await db.get_subs(message.from_user.id)
+    subs = await db.get_subs(str(message.from_user.id))
     lines = []
     for sub in subs:
         lines.append(f'<a href="{sub.url}">{sub.name}</a>')
@@ -97,7 +97,7 @@ async def on_subs(client: Client, message: Message):
 async def on_cancel_command(client: Client, message: Message):
     db = DB()
     print(message.matches[0].group(1))
-    sub = await db.get(Subscription, (message.matches[0].group(1), message.from_user.id))
+    sub = await db.get(Subscription, (message.matches[0].group(1), str(message.from_user.id)))
     if not sub:
         return await message.reply("You were not subscribed to that manga.")
     await db.erase(sub)
