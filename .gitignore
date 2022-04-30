@@ -12,3 +12,4 @@ bot.session
 /test.db
 
 venv
+env.json

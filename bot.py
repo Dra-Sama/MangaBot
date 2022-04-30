@@ -2,6 +2,7 @@ from ast import arg
 import asyncio
 import re
 from dataclasses import dataclass
+import json
 
 import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
@@ -40,11 +41,18 @@ subsPaused = []
 def split_list(li):
     return [li[x: x+2] for x in range(0, len(li), 2)]
 
+env_file = "env.json"
+if os.path.exists(env_file):
+    env_vars = dict()
+    with open(env_file) as f:
+        env_vars = json.loads(f.read())
+else:
+    env_vars = dict(os.environ)
 
 bot = Client('bot',
-             api_id=int(os.getenv('API_ID')),
-             api_hash=os.getenv('API_HASH'),
-             bot_token=os.getenv('BOT_TOKEN'))
+             api_id=int(env_vars.get('API_ID')),
+             api_hash=env_vars.get('API_HASH'),
+             bot_token=env_vars.get('BOT_TOKEN'))
 
 
 @bot.on_message(filters=filters.command(['start']) & filters.incoming)
