@@ -25,6 +25,10 @@
             "description": "Get this value from @BotFather in telegram",
             "required": true
         },
+        "CHANNEL": {
+            "description": "Channel that users must be subscribeb in order to use the bot.",
+            "required": false
+        },
         "DATABASE_URL_PRIMARY": {
             "description": "Will be used as database url. If not given heroku database will be used instead.",
             "required": false

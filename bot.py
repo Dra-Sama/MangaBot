@@ -55,7 +55,31 @@ bot = Client('bot',
              bot_token=env_vars.get('BOT_TOKEN'))
 
 
-@bot.on_message(filters=filters.private & filters.command(['start']) & filters.incoming)
+@bot.on_message(filters=~(filters.private & filters.incoming))
+async def on_chat_or_channel_message(client: Client, message: Message):
+    pass
+
+@bot.on_message()
+async def on_private_message(client: Client, message: Message):
+    channel = env_vars.get('CHANNEL')
+    if not channel:
+        return message.continue_propagation()
+    try:
+        if await client.get_chat_member(channel, message.from_user.id):
+            return message.continue_propagation()
+    except pyrogram.errors.UsernameNotOccupied:
+        print("Channel does not exist, therefore bot will continue to operate normally")
+        return message.continue_propagation()
+    except pyrogram.errors.ChatAdminRequired:
+        print("Bot is not admin of the channel, therefore bot will continue to operate normally")
+        return message.continue_propagation()
+    except pyrogram.errors.UserNotParticipant:
+        await message.reply("In order to use the bot you must join it's update channel.", reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton('Join!', url=f't.me/{channel}')]]
+        ))
+
+
+@bot.on_message(filters=filters.command(['start']))
 async def on_refresh(client: Client, message: Message):
     await message.reply("Welcome to Tachiyomi?\n"
                         "\n"
@@ -65,7 +89,7 @@ async def on_refresh(client: Client, message: Message):
                         "`Fire Force`")
 
 
-@bot.on_message(filters=filters.private & filters.command(['refresh']) & filters.incoming)
+@bot.on_message(filters=filters.command(['refresh']))
 async def on_refresh(client: Client, message: Message):
     if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document\
             or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
@@ -78,7 +102,7 @@ async def on_refresh(client: Client, message: Message):
     await db.erase(chapter)
     return await message.reply("File refreshed successfully!")
 
-@bot.on_message(filters=filters.private & filters.command(['subs']) & filters.incoming)
+@bot.on_message(filters=filters.command(['subs']))
 async def on_subs(client: Client, message: Message):
     db = DB()
     subs = await db.get_subs(str(message.from_user.id))
@@ -93,7 +117,7 @@ async def on_subs(client: Client, message: Message):
     body = "\n".join(lines)
     await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
 
-@bot.on_message(filters=filters.private & filters.incoming & filters.regex(r'^/cancel ([^ ]+)$'))
+@bot.on_message(filters=filters.regex(r'^/cancel ([^ ]+)$'))
 async def on_cancel_command(client: Client, message: Message):
     db = DB()
     sub = await db.get(Subscription, (message.matches[0].group(1), str(message.from_user.id)))
@@ -103,11 +127,11 @@ async def on_cancel_command(client: Client, message: Message):
     return await message.reply("You will no longer receive updates for that manga.")
     
 
-@bot.on_message(filters=filters.private & filters.regex(r'^/') & filters.incoming)
+@bot.on_message(filters=filters.regex(r'^/'))
 async def on_unknown_command(client: Client, message: Message):
     await message.reply("Unknown command")
 
-@bot.on_message(filters=filters.private & filters.text & filters.incoming)
+@bot.on_message(filters=filters.text)
 async def on_message(client, message: Message):
     for identifier, manga_client in plugins.items():
         queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
