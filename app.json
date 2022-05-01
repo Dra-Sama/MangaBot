@@ -8,6 +8,7 @@
         "telegram",
         "bot"
     ],
+    "stack": "container",
     "repository": "https://github.com/driverog/tg-manga-bot",
     "success_url": "/welcome",
     "env": {
