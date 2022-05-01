@@ -81,7 +81,7 @@ async def on_private_message(client: Client, message: Message):
 
 @bot.on_message(filters=filters.command(['start']))
 async def on_refresh(client: Client, message: Message):
-    await message.reply("Welcome to Tachiyomi?\n"
+    await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
                         "\n"
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
                         "\n"
