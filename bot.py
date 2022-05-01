@@ -2,6 +2,7 @@ from ast import arg
 import asyncio
 import re
 from dataclasses import dataclass
+import datetime as dt
 import json
 
 import pyrogram.errors
@@ -24,6 +25,7 @@ paginations: Dict[int, Pagination] = {}
 queries: Dict[str, Tuple[MangaClient, str]] = {}
 full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
+users_in_channel: Dict[int, dt.datetime] = {}
 
 
 plugins: Dict[str, MangaClient] = {
@@ -64,8 +66,14 @@ async def on_private_message(client: Client, message: Message):
     channel = env_vars.get('CHANNEL')
     if not channel:
         return message.continue_propagation()
+    if in_channel_cached := users_in_channel.get(message.from_user.id):
+        if dt.datetime.now() - in_channel_cached < dt.timedelta(days=1):
+            print('cached')
+            return message.continue_propagation()
     try:
         if await client.get_chat_member(channel, message.from_user.id):
+            print('not cached')
+            users_in_channel[message.from_user.id] = dt.datetime.now()
             return message.continue_propagation()
     except pyrogram.errors.UsernameNotOccupied:
         print("Channel does not exist, therefore bot will continue to operate normally")

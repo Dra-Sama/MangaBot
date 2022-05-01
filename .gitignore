@@ -9,6 +9,7 @@ alembic
 .env
 cache
 bot.session
+bot.session-journal
 /test.db
 
 venv
