@@ -128,7 +128,7 @@ class MangaDexClient(MangaClient):
             page += 1
 
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl()) and (url.endswith(self.language) or self.language == 'en')
+        return url.startswith(self.base_url.geturl()) and url.endswith(self.language)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
