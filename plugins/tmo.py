@@ -5,7 +5,7 @@ from urllib.parse import urlparse, urljoin, quote, quote_plus
 from bs4 import BeautifulSoup
 
 from plugins.client import MangaClient, MangaCard, MangaChapter
-
+from models import LastChapter
 
 class TupleString(tuple):
 
@@ -116,7 +116,7 @@ class TMOClient(MangaClient):
 
         response = await self.get_url(request_url, req_content=False)
 
-        print(response)
+        # print(response)
 
         content = await response.read()
 
@@ -130,7 +130,7 @@ class TMOClient(MangaClient):
         headers = {'referer': url[1]}
         return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.pre_headers, **headers}, **kwargs)
 
-    async def check_updated_urls(self, urls: List[str]):
+    async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
         content = await self.get_url(self.latest_uploads)
 
@@ -138,7 +138,7 @@ class TMOClient(MangaClient):
 
         s = set(updates)
 
-        updated = [url for url in urls if url in updates]
-        not_updated = [url for url in urls if url not in updates]
+        updated = [lc.url for lc in last_chapters if lc.url in updates]
+        not_updated = [lc.url for lc in last_chapters if lc.url not in updates]
 
         return updated, not_updated

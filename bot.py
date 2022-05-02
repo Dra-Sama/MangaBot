@@ -9,7 +9,7 @@ import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, MangaSeeClient
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, MangaSeeClient, MangasInClient
 import os
 
 from pyrogram import Client, filters
@@ -34,7 +34,8 @@ plugins: Dict[str, MangaClient] = {
     "[EN] Mangasee": MangaSeeClient(),
     "[ES] MangaDex": MangaDexClient(language="es-la"),
     "[ES] ManhuaKo": ManhuaKoClient(),
-    "[ES] TMO": TMOClient()
+    "[ES] TMO": TMOClient(),
+    "[ES] Mangas.In": MangasInClient()
 }
 
 # subsPaused = ["[ES] TMO"]
@@ -365,7 +366,7 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        updated, not_updated = await client.check_updated_urls(urls)
+        updated, not_updated = await client.check_updated_urls([chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)])
         for url in not_updated:
             del url_client_dictionary[url]
     

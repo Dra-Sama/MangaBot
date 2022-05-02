@@ -6,6 +6,7 @@ from typing import List, AsyncIterable
 from aiohttp import ClientSession
 from pathlib import Path
 
+from models import LastChapter
 
 @dataclass
 class MangaCard:
@@ -117,7 +118,7 @@ class MangaClient(ClientSession, ABC):
     async def get_picture(self, url, *args, **kwargs):
         return await self.get_url(url, *args, **kwargs)
 
-    async def check_updated_urls(self, urls: List[str]):
+    async def check_updated_urls(self, urls: List[LastChapter]):
         return urls, []
 
     @abstractmethod
