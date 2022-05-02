@@ -68,11 +68,9 @@ async def on_private_message(client: Client, message: Message):
         return message.continue_propagation()
     if in_channel_cached := users_in_channel.get(message.from_user.id):
         if dt.datetime.now() - in_channel_cached < dt.timedelta(days=1):
-            print('cached')
             return message.continue_propagation()
     try:
         if await client.get_chat_member(channel, message.from_user.id):
-            print('not cached')
             users_in_channel[message.from_user.id] = dt.datetime.now()
             return message.continue_propagation()
     except pyrogram.errors.UsernameNotOccupied:
