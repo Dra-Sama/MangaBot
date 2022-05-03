@@ -366,7 +366,7 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        print('')
+        # print('')
         # print(f'Updating {client.name}')
         # print(f'Urls:\t{list(urls)}')
         # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
