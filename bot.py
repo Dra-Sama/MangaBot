@@ -34,8 +34,8 @@ plugins: Dict[str, MangaClient] = {
     "[EN] Mangasee": MangaSeeClient(),
     "[ES] MangaDex": MangaDexClient(language="es-la"),
     "[ES] ManhuaKo": ManhuaKoClient(),
-    "[ES] TMO": TMOClient(),
-    "[ES] Mangas.In": MangasInClient()
+    "[ES] TMO": TMOClient()
+    # "[ES] Mangas.In": MangasInClient()
 }
 
 # subsPaused = ["[ES] TMO"]
