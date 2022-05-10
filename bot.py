@@ -9,7 +9,7 @@ import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, MangaSeeClient, MangasInClient
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, MangaSeeClient, MangasInClient, McReaderClient
 import os
 
 from pyrogram import Client, filters
@@ -32,6 +32,7 @@ plugins: Dict[str, MangaClient] = {
     "[EN] MangaDex": MangaDexClient(),
     "[EN] Manhuaplus": ManhuaPlusClient(),
     "[EN] Mangasee": MangaSeeClient(),
+    "[EN] McReader": McReaderClient(),
     "[ES] MangaDex": MangaDexClient(language="es-la"),
     "[ES] ManhuaKo": ManhuaKoClient(),
     "[ES] TMO": TMOClient()
