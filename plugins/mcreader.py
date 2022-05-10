@@ -85,7 +85,7 @@ class McReaderClient(MangaClient):
 
         images_url = [quote(img.get('src'), safe=':/') for img in images]
 
-        return images_url[:2]
+        return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
