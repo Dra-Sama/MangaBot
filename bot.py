@@ -25,19 +25,28 @@ paginations: Dict[int, Pagination] = {}
 queries: Dict[str, Tuple[MangaClient, str]] = {}
 full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
+language_query: Dict[str, Tuple[str, str]] = {}
 users_in_channel: Dict[int, dt.datetime] = {}
 
 
-plugins: Dict[str, MangaClient] = {
-    "[EN] MangaDex": MangaDexClient(),
-    "[EN] Manhuaplus": ManhuaPlusClient(),
-    "[EN] Mangasee": MangaSeeClient(),
-    "[EN] McReader": McReaderClient(),
-    "[ES] MangaDex": MangaDexClient(language="es-la"),
-    "[ES] ManhuaKo": ManhuaKoClient(),
-    "[ES] TMO": TMOClient()
-    # "[ES] Mangas.In": MangasInClient()
+plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
+    "🇬🇧 EN": {
+        "MangaDex": MangaDexClient(),
+        "Manhuaplus": ManhuaPlusClient(),
+        "Mangasee": MangaSeeClient(),
+        "McReader": McReaderClient()
+    },
+    "🇪🇸 ES": {
+        "MangaDex": MangaDexClient(language="es-la"),
+        "ManhuaKo": ManhuaKoClient(),
+        "TMO": TMOClient()
+    }
 }
+
+plugins = {}
+for lang, plugin_dict in plugin_dicts.items():
+    for name, plugin in plugin_dict.items():
+        plugins[f'[{lang}] {name}'] = plugin
 
 # subsPaused = ["[ES] TMO"]
 subsPaused = []
@@ -141,13 +150,28 @@ async def on_unknown_command(client: Client, message: Message):
 
 @bot.on_message(filters=filters.text)
 async def on_message(client, message: Message):
-    for identifier, manga_client in plugins.items():
-        queries[f"query_{identifier}_{hash(message.text)}"] = (manga_client, message.text)
-    await bot.send_message(message.chat.id, "Select search plugin", reply_markup=InlineKeyboardMarkup(
-        split_list([InlineKeyboardButton(identifier, callback_data=f"query_{identifier}_{hash(message.text)}")
-         for identifier in plugins.keys()])
+    language_query[f"lang_None_{hash(message.text)}"] = (None, message.text)
+    for language in plugin_dicts.keys():
+        language_query[f"lang_{language}_{hash(message.text)}"] = (language, message.text)
+    await bot.send_message(message.chat.id, "Select search language.", reply_markup=InlineKeyboardMarkup(
+        split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(message.text)}")
+         for language in plugin_dicts.keys()])
     ))
 
+
+async def language_click(client, callback: CallbackQuery):
+    lang, query = language_query[callback.data]
+    if not lang:
+        return await callback.message.edit("Select search language.", reply_markup=InlineKeyboardMarkup(
+        split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(query)}")
+         for language in plugin_dicts.keys()])
+        ))
+    for identifier, manga_client in plugin_dicts[lang].items():
+        queries[f"query_{lang}_{identifier}_{hash(query)}"] = (manga_client, query)
+    await callback.message.edit(f"Language: {lang}\n\nSelect search plugin.", reply_markup=InlineKeyboardMarkup(
+        split_list([InlineKeyboardButton(identifier, callback_data=f"query_{lang}_{identifier}_{hash(query)}")
+         for identifier in plugin_dicts[lang].keys()]) + [[InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
+    ))
 
 async def plugin_click(client, callback: CallbackQuery):
     manga_client, query = queries[callback.data]
@@ -326,6 +350,8 @@ async def on_callback_query(client, callback: CallbackQuery):
         await favourite_click(client, callback)
     elif is_pagination_data(callback):
         await pagination_click(client, callback)
+    elif callback.data in language_query:
+        await language_click(client, callback)
     else:
         await bot.answer_callback_query(callback.id, 'This is an old button, please redo the search', show_alert=True)
         return
