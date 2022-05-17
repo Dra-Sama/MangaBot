@@ -2,8 +2,9 @@ from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
 from bs4 import BeautifulSoup
+from bs4.element import PageElement
 
-from plugins.client import MangaClient, MangaCard, MangaChapter
+from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 
 class ManhuaKoClient(MangaClient):
@@ -23,6 +24,8 @@ class ManhuaKoClient(MangaClient):
         bs = BeautifulSoup(page, "html.parser")
 
         cards = bs.find_all("div", {"class": "card"})
+
+        cards = [card for card in cards if card.findNext('p', {'class': 'type'}).text != "Novela"]
 
         mangas = [card.findNext('a', {'class': 'white-text'}) for card in cards]
         names = [manga.string for manga in mangas]
@@ -45,6 +48,26 @@ class ManhuaKoClient(MangaClient):
         texts = [item.string for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
+
+    @staticmethod
+    def updates_from_page(content):
+        bs = BeautifulSoup(content, "html.parser")
+
+        manga_items = bs.find_all("div", {"class": "card"})
+
+        urls = dict()
+
+        for manga_item in manga_items:
+            manga_url = manga_item.findNext('a', {'class': 'white-text'}).get('href')
+
+            if manga_url in urls:
+                continue
+
+            chapter_url = manga_item.findNext('a', {'class': 'chip'}).get('href')
+
+            urls[manga_url] = chapter_url
+
+        return urls
 
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
@@ -89,3 +112,16 @@ class ManhuaKoClient(MangaClient):
 
     async def contains_url(self, url: str):
         return url.startswith(self.base_url.geturl())
+
+    async def check_updated_urls(self, last_chapters: List[LastChapter]):
+
+        content = await self.get_url(self.base_url.geturl())
+
+        updates = self.updates_from_page(content)
+        print(updates)
+
+        updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
+        not_updated = [lc.url for lc in last_chapters if
+                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
+
+        return updated, not_updated

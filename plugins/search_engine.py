@@ -1,9 +1,7 @@
-import re
 from typing import TypeVar, Callable, List
 
-from sqlalchemy import false
-
 T = TypeVar("T")
+
 
 class KMP:
 
@@ -12,26 +10,26 @@ class KMP:
         self.pi = self.computeLPSArray()
 
     def computeLPSArray(self):
-        length = 0 # length of the previous longest prefix suffix
+        length = 0  # length of the previous longest prefix suffix
         M = len(self.pattern)
         lps = [0] * M
         i = 1
 
         # the loop calculates lps[i] for i = 1 to M-1 
-        while i < M: 
-            if self.pattern[i]== self.pattern[length]:
+        while i < M:
+            if self.pattern[i] == self.pattern[length]:
                 length += 1
                 lps[i] = length
                 i += 1
-            else: 
+            else:
                 # This is tricky. Consider the example. 
                 # AAACAAAA and i = 7. The idea is similar
                 # to search step. 
 
-                if length != 0: 
-                    length = lps[length-1]
+                if length != 0:
+                    length = lps[length - 1]
                     # Also, note that we do not increment i here 
-                else: 
+                else:
                     lps[i] = 0
                     i += 1
 
@@ -46,28 +44,28 @@ class KMP:
 
         lps = self.pi
 
-        i = 0 # index for txt[]
-        j = 0 # index for pat[] 
+        i = 0  # index for txt[]
+        j = 0  # index for pat[]
 
-        while i < N: 
+        while i < N:
 
-            if pat[j] == txt[i]: 
+            if pat[j] == txt[i]:
                 i += 1
                 j += 1
 
             if j == M:
                 return True
-                j = lps[j-1]
 
             # mismatch after j matches 
-            elif i < N and pat[j] != txt[i]: 
+            elif i < N and pat[j] != txt[i]:
                 # Do not match lps[0..lps[j-1]] characters, 
                 # they will match anyway 
-                if j != 0: 
-                    j = lps[j-1]
-                else: 
+                if j != 0:
+                    j = lps[j - 1]
+                else:
                     i += 1
         return False
+
 
 def search(query: str, documents: List[T], get_text: Callable[[T], str]):
     query = query.lower()

@@ -1,17 +1,13 @@
 import json
 import re
 from typing import List, AsyncIterable
-from urllib.parse import urlparse, urljoin, quote, quote_plus
-from xml.dom.minidom import Document
-
-from bs4 import BeautifulSoup
+from urllib.parse import urlparse, urljoin, quote_plus
 
 from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
-
 from .search_engine import search
 
-class MangaSeeClient(MangaClient):
 
+class MangaSeeClient(MangaClient):
     base_url = urlparse("https://mangasee123.com/")
     search_url = urljoin(base_url.geturl(), "_search.php")
     manga_url = urljoin(base_url.geturl(), "manga")
@@ -34,15 +30,14 @@ class MangaSeeClient(MangaClient):
 
         return mangas
 
-    
     def chapter_url_encode(self, chapter):
         chapter = chapter['Chapter']
-        Index=""
+        Index = ""
         t = chapter[0:1]
         if t != '1':
-            Index = "-index-"+t
+            Index = "-index-" + t
         n = int(chapter[1:-1])
-        m=""
+        m = ""
         a = chapter[-1]
         if a != '0':
             m = "." + a
@@ -60,9 +55,9 @@ class MangaSeeClient(MangaClient):
         chapters_str_list = chap_pat.findall(page.decode())
         if not chapters_str_list:
             return []
-        
+
         chapter_list = json.loads(chapters_str_list[0])
-        
+
         index_pat = re.compile('vm.IndexName = ([\s\S]*?);')
         index_str_list = index_pat.findall(page.decode())
         if not index_str_list:
@@ -85,7 +80,7 @@ class MangaSeeClient(MangaClient):
         chapters_str_list = chap_pat.findall(page.decode())
         if not chapters_str_list:
             return []
-        
+
         chapter_list = json.loads(chapters_str_list[0])
 
         urls = [f"{self.manga_url}/{ch['IndexName']}" for ch in chapter_list]
@@ -132,7 +127,9 @@ class MangaSeeClient(MangaClient):
 
         pages = list(range(1, int(curChapter['Page']) + 1))
 
-        images_url = [f"https://{curPath}/manga/{index_str}/{'' if curChapter['Directory'] == '' else curChapter['Directory'] + '/'}{self.chapterImage(curChapter['Chapter'])}-{self.pageImage(page)}.png" for page in pages]
+        images_url = [
+            f"https://{curPath}/manga/{index_str}/{'' if curChapter['Directory'] == '' else curChapter['Directory'] + '/'}{self.chapterImage(curChapter['Chapter'])}-{self.pageImage(page)}.png"
+            for page in pages]
 
         return images_url
 
@@ -142,7 +139,8 @@ class MangaSeeClient(MangaClient):
 
         request_url = self.search_url
 
-        content = await self.get_url(request_url, method="post", file_name=f'search/{quote_plus(query)}.json', cache=True)
+        content = await self.get_url(request_url, method="post", file_name=f'search/{quote_plus(query)}.json',
+                                     cache=True)
 
         documents = json.loads(content)
 
@@ -159,7 +157,7 @@ class MangaSeeClient(MangaClient):
         return self.chapters_from_page(content, manga_card)[(page - 1) * 20:page * 20]
 
     async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
-        
+
         manga_card = MangaCard(self, manga_name, manga_url, '')
 
         request_url = f'{manga_card.url}'
@@ -179,6 +177,7 @@ class MangaSeeClient(MangaClient):
         updates = self.updates_from_page(content)
 
         updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
-        not_updated = [lc.url for lc in last_chapters if not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
+        not_updated = [lc.url for lc in last_chapters if
+                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
 
         return updated, not_updated

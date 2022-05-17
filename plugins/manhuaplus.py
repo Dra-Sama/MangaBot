@@ -2,6 +2,7 @@ from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
 from bs4 import BeautifulSoup
+from bs4.element import PageElement
 
 from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 

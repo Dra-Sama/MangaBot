@@ -3,7 +3,8 @@ import json
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 from dataclasses import dataclass
 
-from bs4 import BeautifulSoup, PageElement
+from bs4 import BeautifulSoup
+from bs4.element import PageElement
 
 from plugins.client import MangaClient, MangaCard, MangaChapter
 from models import LastChapter
