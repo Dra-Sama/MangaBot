@@ -1,3 +1,4 @@
+import shutil
 from ast import arg
 import asyncio
 import re
@@ -282,6 +283,7 @@ async def chapter_click(client, data, chat_id):
         message = await bot.send_document(chat_id, pdf, caption=caption, thumb=thumb_path)
         await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id,
                                  file_unique_id=message.document.file_unique_id))
+        shutil.rmtree(pictures_folder)
     else:
         message = await bot.send_document(chat_id, chapterFile.file_id, caption=caption)
 
