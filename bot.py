@@ -9,7 +9,8 @@ import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from img2pdf.core import fld2pdf
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, MangaSeeClient, MangasInClient, McReaderClient
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
+    MangaSeeClient, MangasInClient, McReaderClient
 import os
 
 from pyrogram import Client, filters
@@ -27,7 +28,6 @@ full_pages: Dict[str, List[str]] = {}
 favourites: Dict[str, MangaCard] = {}
 language_query: Dict[str, Tuple[str, str]] = {}
 users_in_channel: Dict[int, dt.datetime] = {}
-
 
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
@@ -51,8 +51,10 @@ for lang, plugin_dict in plugin_dicts.items():
 # subsPaused = ["[ES] TMO"]
 subsPaused = []
 
+
 def split_list(li):
-    return [li[x: x+2] for x in range(0, len(li), 2)]
+    return [li[x: x + 2] for x in range(0, len(li), 2)]
+
 
 env_file = "env.json"
 if os.path.exists(env_file):
@@ -71,6 +73,7 @@ bot = Client('bot',
 @bot.on_message(filters=~(filters.private & filters.incoming))
 async def on_chat_or_channel_message(client: Client, message: Message):
     pass
+
 
 @bot.on_message()
 async def on_private_message(client: Client, message: Message):
@@ -91,9 +94,10 @@ async def on_private_message(client: Client, message: Message):
         print("Bot is not admin of the channel, therefore bot will continue to operate normally")
         return message.continue_propagation()
     except pyrogram.errors.UserNotParticipant:
-        await message.reply("In order to use the bot you must join it's update channel.", reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton('Join!', url=f't.me/{channel}')]]
-        ))
+        await message.reply("In order to use the bot you must join it's update channel.",
+                            reply_markup=InlineKeyboardMarkup(
+                                [[InlineKeyboardButton('Join!', url=f't.me/{channel}')]]
+                            ))
 
 
 @bot.on_message(filters=filters.command(['start']))
@@ -108,7 +112,7 @@ async def on_refresh(client: Client, message: Message):
 
 @bot.on_message(filters=filters.command(['refresh']))
 async def on_refresh(client: Client, message: Message):
-    if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document\
+    if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document \
             or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
         return await message.reply("This command only works when it replies to a pdf file that bot sent to you")
     replied = message.reply_to_message
@@ -118,6 +122,7 @@ async def on_refresh(client: Client, message: Message):
         return await message.reply("This file was already refreshed")
     await db.erase(chapter)
     return await message.reply("File refreshed successfully!")
+
 
 @bot.on_message(filters=filters.command(['subs']))
 async def on_subs(client: Client, message: Message):
@@ -134,6 +139,7 @@ async def on_subs(client: Client, message: Message):
     body = "\n".join(lines)
     await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
 
+
 @bot.on_message(filters=filters.regex(r'^/cancel ([^ ]+)$'))
 async def on_cancel_command(client: Client, message: Message):
     db = DB()
@@ -142,11 +148,12 @@ async def on_cancel_command(client: Client, message: Message):
         return await message.reply("You were not subscribed to that manga.")
     await db.erase(sub)
     return await message.reply("You will no longer receive updates for that manga.")
-    
+
 
 @bot.on_message(filters=filters.regex(r'^/'))
 async def on_unknown_command(client: Client, message: Message):
     await message.reply("Unknown command")
+
 
 @bot.on_message(filters=filters.text)
 async def on_message(client, message: Message):
@@ -155,7 +162,7 @@ async def on_message(client, message: Message):
         language_query[f"lang_{language}_{hash(message.text)}"] = (language, message.text)
     await bot.send_message(message.chat.id, "Select search language.", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(message.text)}")
-         for language in plugin_dicts.keys()])
+                    for language in plugin_dicts.keys()])
     ))
 
 
@@ -163,15 +170,17 @@ async def language_click(client, callback: CallbackQuery):
     lang, query = language_query[callback.data]
     if not lang:
         return await callback.message.edit("Select search language.", reply_markup=InlineKeyboardMarkup(
-        split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(query)}")
-         for language in plugin_dicts.keys()])
+            split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(query)}")
+                        for language in plugin_dicts.keys()])
         ))
     for identifier, manga_client in plugin_dicts[lang].items():
         queries[f"query_{lang}_{identifier}_{hash(query)}"] = (manga_client, query)
     await callback.message.edit(f"Language: {lang}\n\nSelect search plugin.", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(identifier, callback_data=f"query_{lang}_{identifier}_{hash(query)}")
-         for identifier in plugin_dicts[lang].keys()]) + [[InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
+                    for identifier in plugin_dicts[lang].keys()]) + [
+            [InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
     ))
+
 
 async def plugin_click(client, callback: CallbackQuery):
     manga_client, query = queries[callback.data]
@@ -196,7 +205,7 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
     if pagination.manga is None:
         manga = mangas[callback.data]
         pagination.manga = manga
-        
+
     results = await pagination.manga.client.get_chapters(pagination.manga, pagination.page)
 
     if not results:
@@ -224,11 +233,11 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
     favourites[f"unfav_{pagination.manga.unique()}"] = pagination.manga
 
     full_page = [[InlineKeyboardButton('Full Page', full_page_key)]]
-    
+
     buttons = InlineKeyboardMarkup(fav + footer + [
         [InlineKeyboardButton(result.name, result.unique())] for result in results
     ] + full_page + footer)
-    
+
     if pagination.message is None:
         try:
             message = await bot.send_photo(callback.from_user.id,
@@ -255,19 +264,19 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
 async def chapter_click(client, data, chat_id):
     chapter = chapters[data]
     db = DB()
-    
+
     chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
 
     caption = '\n'.join([
         f'{chapter.manga.name} - {chapter.name}',
         f'{chapter.get_url()}'
     ])
-    
+
     if not chapterFile:
         pictures_folder = await chapter.client.download_pictures(chapter)
         if not chapter.pictures:
             message = await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
-            f', please check the chapter at the web\n\n{caption}')
+                                             f', please check the chapter at the web\n\n{caption}')
             return
         pdf, thumb_path = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
         message = await bot.send_document(chat_id, pdf, caption=caption, thumb=thumb_path)
@@ -314,7 +323,8 @@ async def favourite_click(client: Client, callback: CallbackQuery):
         "Unsubscribe" if fav else "Subscribe",
         f"{'unfav' if fav else 'fav'}_{data}"
     )]
-    await bot.edit_message_reply_markup(callback.from_user.id, callback.message.message_id, InlineKeyboardMarkup(keyboard))
+    await bot.edit_message_reply_markup(callback.from_user.id, callback.message.message_id,
+                                        InlineKeyboardMarkup(keyboard))
     db_manga = await db.get(MangaName, manga.url)
     if not db_manga:
         await db.add(MangaName(url=manga.url, name=manga.name))
@@ -398,12 +408,13 @@ async def update_mangas():
         # print(f'Urls:\t{list(urls)}')
         # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
         # print(f'New Urls:\t{new_urls}')
-        updated, not_updated = await client.check_updated_urls([chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)])
+        updated, not_updated = await client.check_updated_urls(
+            [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)])
         for url in not_updated:
             del url_client_dictionary[url]
         # print(f'Updated:\t{list(updated)}')
         # print(f'Not Updated:\t{list(not_updated)}')
-    
+
     updated = dict()
 
     for url, client in url_client_dictionary.items():
