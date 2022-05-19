@@ -106,7 +106,8 @@ class MangaClient(ClientSession, ABC):
             ext = picture.split('.')[-1]
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
             for _ in range(3):
-                req = await self.get_picture(picture, file_name=file_name, cache=True, req_content=False)
+                req = await self.get_picture(manga_chapter, picture, file_name=file_name, cache=True,
+                                             req_content=False)
                 if str(req.status).startswith('2'):
                     break
             else:
@@ -115,7 +116,7 @@ class MangaClient(ClientSession, ABC):
 
         return Path(f'cache/{manga_chapter.client.name}') / folder_name
 
-    async def get_picture(self, url, *args, **kwargs):
+    async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
         return await self.get_url(url, *args, **kwargs)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):

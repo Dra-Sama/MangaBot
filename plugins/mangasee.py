@@ -139,8 +139,7 @@ class MangaSeeClient(MangaClient):
 
         request_url = self.search_url
 
-        content = await self.get_url(request_url, method="post", file_name=f'search/{quote_plus(query)}.json',
-                                     cache=True)
+        content = await self.get_url(request_url, method="post")
 
         documents = json.loads(content)
 

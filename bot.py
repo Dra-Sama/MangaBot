@@ -11,7 +11,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 
 from img2pdf.core import fld2pdf
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
-    MangaSeeClient, MangasInClient, McReaderClient
+    MangaSeeClient, MangasInClient, McReaderClient, MangaKakalotClient
 import os
 
 from pyrogram import Client, filters
@@ -20,22 +20,23 @@ from typing import Dict, Tuple, List
 from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName
 from pagination import Pagination
 
-mangas: Dict[str, MangaCard] = {}
-chapters: Dict[str, MangaChapter] = {}
-pdfs: Dict[str, str] = {}
-paginations: Dict[int, Pagination] = {}
-queries: Dict[str, Tuple[MangaClient, str]] = {}
-full_pages: Dict[str, List[str]] = {}
-favourites: Dict[str, MangaCard] = {}
-language_query: Dict[str, Tuple[str, str]] = {}
-users_in_channel: Dict[int, dt.datetime] = {}
+mangas: Dict[str, MangaCard] = dict()
+chapters: Dict[str, MangaChapter] = dict()
+pdfs: Dict[str, str] = dict()
+paginations: Dict[int, Pagination] = dict()
+queries: Dict[str, Tuple[MangaClient, str]] = dict()
+full_pages: Dict[str, List[str]] = dict()
+favourites: Dict[str, MangaCard] = dict()
+language_query: Dict[str, Tuple[str, str]] = dict()
+users_in_channel: Dict[int, dt.datetime] = dict()
 
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
         "MangaDex": MangaDexClient(),
         "Manhuaplus": ManhuaPlusClient(),
         "Mangasee": MangaSeeClient(),
-        "McReader": McReaderClient()
+        "McReader": McReaderClient(),
+        "MagaKakalot": MangaKakalotClient()
     },
     "🇪🇸 ES": {
         "MangaDex": MangaDexClient(language="es-la"),
@@ -44,7 +45,7 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     }
 }
 
-plugins = {}
+plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
     for name, plugin in plugin_dict.items():
         plugins[f'[{lang}] {name}'] = plugin

@@ -118,7 +118,6 @@ class ManhuaKoClient(MangaClient):
         content = await self.get_url(self.base_url.geturl())
 
         updates = self.updates_from_page(content)
-        print(updates)
 
         updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
         not_updated = [lc.url for lc in last_chapters if

@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from plugins.client import MangaClient, MangaCard, MangaChapter
 from models import LastChapter
 
+
 class TupleString(tuple):
 
     def split(self, arg):
@@ -126,9 +127,10 @@ class TMOClient(MangaClient):
     async def contains_url(self, url: str):
         return url.startswith(self.base_url.geturl())
 
-    async def get_picture(self, url, *args, **kwargs):
+    async def get_picture(self, manga_chapter, url, *args, **kwargs):
         headers = {'referer': url[1]}
-        return await super(TMOClient, self).get_picture(url[0], *args, headers={**self.pre_headers, **headers}, **kwargs)
+        return await super(TMOClient, self).get_picture(manga_chapter, url[0], *args,
+                                                        headers={**self.pre_headers, **headers}, **kwargs)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
