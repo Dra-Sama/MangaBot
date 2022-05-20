@@ -7,3 +7,4 @@ from .mangasee import MangaSeeClient
 from .mangasin import MangasInClient
 from .mcreader import McReaderClient
 from .mangakakalot import MangaKakalotClient
+from .manganelo import ManganeloClient
