@@ -7,6 +7,8 @@ from aiohttp import ClientSession
 from pathlib import Path
 
 from models import LastChapter
+from tools import Singleton
+
 
 @dataclass
 class MangaCard:
@@ -43,7 +45,7 @@ def clean(folder_name):
     return folder_name.replace(':', '')
 
 
-class MangaClient(ClientSession, ABC):
+class MangaClient(ClientSession, metaclass=Singleton):
 
     def __init__(self, *args, name="client", **kwargs):
         if name == "client":

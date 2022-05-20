@@ -8,3 +8,4 @@ from .mangasin import MangasInClient
 from .mcreader import McReaderClient
 from .mangakakalot import MangaKakalotClient
 from .manganelo import ManganeloClient
+from .manganato import ManganatoClient

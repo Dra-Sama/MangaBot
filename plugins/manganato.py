@@ -6,21 +6,20 @@ import re
 from bs4 import BeautifulSoup
 from bs4.element import PageElement
 
-from plugins.manganato import ManganatoClient
 from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 
-class MangaKakalotClient(MangaClient):
+class ManganatoClient(MangaClient):
 
-    base_url = urlparse("https://mangakakalot.com/")
-    search_url = urljoin(base_url.geturl(), 'home_json_search')
+    base_url = urlparse("https://manganato.com/")
+    search_url = urljoin(base_url.geturl(), 'getstorysearchjson')
     search_param = 'searchword'
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="MangaKakalot", **kwargs):
+    def __init__(self, *args, name="Manganato", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
@@ -29,20 +28,17 @@ class MangaKakalotClient(MangaClient):
         pattern = re.compile(r'<span .*?>(.+?)</span>')
 
         names = [re.sub(pattern, r'\1', item['name']).title() for item in li]
-        url = [item['story_link'] for item in li]
+        url = [item['link_story'] for item in li]
         images = [item['image'] for item in li]
 
-        mangas = [MangaCard(self if tup[1].startswith(self.base_url.geturl()) else ManganatoClient(), *tup)
-                  for tup in zip(names, url, images)]
+        mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
         return mangas
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        ul = bs.find("div", {"class": "chapter-list"})
-
-        lis = ul.findAll("div", {"class": "row"})
+        lis = bs.find_all("li", {"class": "a-h"})
 
         items = [li.findNext('a') for li in lis]
 
@@ -54,7 +50,7 @@ class MangaKakalotClient(MangaClient):
     def updates_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        manga_items: List[PageElement] = bs.find_all("div", {"class": "itemupdate first"})
+        manga_items: List[PageElement] = bs.find_all("div", {"class": "content-homepage-item"})
 
         urls = dict()
 
@@ -62,10 +58,10 @@ class MangaKakalotClient(MangaClient):
 
             manga_url = manga_item.findNext('a').get('href')
 
-            chapter_item = manga_item.findNext("a", {"class": "sts sts_1"})
+            chapter_item = manga_item.findNext("p", {"class": "a-h item-chapter"})
             if not chapter_item:
                 continue
-            chapter_url = chapter_item.get('href')
+            chapter_url = chapter_item.findNext("a").get('href')
 
             urls[manga_url] = chapter_url
 
@@ -83,10 +79,14 @@ class MangaKakalotClient(MangaClient):
         return images_url
 
     async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
-        headers = dict(self.headers)
-        headers['Referer'] = self.base_url.geturl()
+        pattern = re.compile(r'(.*\.com/)')
+        match = re.match(pattern, manga_chapter.url)
+        referer = match.group(1)
 
-        return await super(MangaKakalotClient, self).get_picture(manga_chapter, url, headers=headers, *args, **kwargs)
+        headers = dict(self.headers)
+        headers['Referer'] = referer
+
+        return await super(ManganatoClient, self).get_picture(manga_chapter, url, headers=headers, *args, **kwargs)
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = query.lower().replace(' ', '_')
