@@ -82,7 +82,7 @@ class TMOClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [TupleString([quote(img.get('data-src'), safe=':/').strip(), url]) for img in images]
+        images_url = [TupleString([quote(img.get('data-src'), safe=':/%').strip(), url]) for img in images]
 
         return images_url
 

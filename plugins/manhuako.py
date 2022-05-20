@@ -76,7 +76,7 @@ class ManhuaKoClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('src'), safe=':/') for img in images]
+        images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
         return images_url
 
