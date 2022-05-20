@@ -75,7 +75,7 @@ class ManganeloClient(MangaClient):
 
         images_url = [quote(img.get('data-src'), safe=':/%') for img in images]
 
-        return images_url[:2]
+        return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote(query)
