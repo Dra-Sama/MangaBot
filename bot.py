@@ -413,8 +413,10 @@ async def update_mangas():
         # print(f'Urls:\t{list(urls)}')
         # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
         # print(f'New Urls:\t{new_urls}')
-        updated, not_updated = await client.check_updated_urls(
-            [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)])
+        to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
+        if len(to_check) == 0:
+            continue
+        updated, not_updated = await client.check_updated_urls(to_check)
         for url in not_updated:
             del url_client_dictionary[url]
         # print(f'Updated:\t{list(updated)}')
