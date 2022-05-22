@@ -41,7 +41,7 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "Manganato": ManganatoClient()
     },
     "🇪🇸 ES": {
-        "MangaDex": MangaDexClient(language="es-la"),
+        "MangaDex": MangaDexClient(language=("es-la", "es")),
         "ManhuaKo": ManhuaKoClient(),
         "TMO": TMOClient()
     }
@@ -164,7 +164,7 @@ async def on_message(client, message: Message):
     language_query[f"lang_None_{hash(message.text)}"] = (None, message.text)
     for language in plugin_dicts.keys():
         language_query[f"lang_{language}_{hash(message.text)}"] = (language, message.text)
-    await bot.send_message(message.chat.id, "Select search language.", reply_markup=InlineKeyboardMarkup(
+    await bot.send_message(message.chat.id, "Select search languages.", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(message.text)}")
                     for language in plugin_dicts.keys()])
     ))
@@ -173,7 +173,7 @@ async def on_message(client, message: Message):
 async def language_click(client, callback: CallbackQuery):
     lang, query = language_query[callback.data]
     if not lang:
-        return await callback.message.edit("Select search language.", reply_markup=InlineKeyboardMarkup(
+        return await callback.message.edit("Select search languages.", reply_markup=InlineKeyboardMarkup(
             split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(query)}")
                         for language in plugin_dicts.keys()])
         ))

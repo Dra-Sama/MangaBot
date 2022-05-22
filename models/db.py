@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel, Field, Session, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from tools import Singleton
+from tools import LanguageSingleton
 
 T = TypeVar("T")
 
@@ -31,7 +31,7 @@ class MangaName(SQLModel, table=True):
     name: str = Field
 
 
-class DB(metaclass=Singleton):
+class DB(metaclass=LanguageSingleton):
     
     def __init__(self):
         dbname = os.getenv('DATABASE_URL_PRIMARY') or os.getenv('DATABASE_URL', 'sqlite:///test.db')

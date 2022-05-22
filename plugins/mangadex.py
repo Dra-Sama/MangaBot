@@ -23,7 +23,6 @@ class MangaDexMangaChapter(MangaChapter):
 
 
 class MangaDexClient(MangaClient):
-
     base_url = urlparse("https://api.mangadex.org/")
     search_url = urljoin(base_url.geturl(), "manga")
     search_param = 'q'
@@ -35,9 +34,12 @@ class MangaDexClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="MangaDex", language="en", **kwargs):
-        super().__init__(*args, name=f'{name}-{language}', headers=self.pre_headers, **kwargs)
-        self.language = language
+    def __init__(self, *args, name="MangaDex", language=None, **kwargs):
+        if language is None:
+            language = ("en",)
+        super().__init__(*args, name=f'{name}-{language[0]}', headers=self.pre_headers, **kwargs)
+        self.languages = language
+        self.language_param = '&'.join([f'translatedLanguage[]={lang}' for lang in self.languages])
 
     def mangas_from_page(self, page: bytes):
         dt = json.loads(page.decode())
@@ -46,11 +48,13 @@ class MangaDexClient(MangaClient):
 
         names = [list(card['attributes']['title'].values())[0] for card in cards]
         ids = [card["id"] for card in cards]
-        url = [f'https://api.mangadex.org/manga/{card["id"]}/feed?translatedLanguage[]={self.language}' for card in cards]
+
+        url = [f'https://api.mangadex.org/manga/{card["id"]}/feed?{self.language_param}' for card in cards]
 
         cover_filename = lambda x: list(filter(lambda y: y['type'] == 'cover_art', x))[0]['attributes']['fileName']
 
-        images = [f'https://uploads.mangadex.org/covers/{card["id"]}/{cover_filename(card["relationships"])}.512.jpg' for card in cards]
+        images = [f'https://uploads.mangadex.org/covers/{card["id"]}/{cover_filename(card["relationships"])}.512.jpg'
+                  for card in cards]
 
         mangas = [MangaDexMangaCard(self, *tup) for tup in zip(names, url, images, ids)]
 
@@ -74,7 +78,8 @@ class MangaDexClient(MangaClient):
             return f'{c["attributes"]["chapter"]}'
 
         ids = [chapter.get("id") for chapter in chapters]
-        links = [f'https://api.mangadex.org/at-home/server/{chapter.get("id")}?forcePort443=false' for chapter in chapters]
+        links = [f'https://api.mangadex.org/at-home/server/{chapter.get("id")}?forcePort443=false' for chapter in
+                 chapters]
         texts = [chapter_name(chapter) for chapter in chapters]
 
         return list(map(lambda x: MangaDexMangaChapter(self, x[0], x[1], manga, [], x[2]), zip(texts, links, ids)))
@@ -128,11 +133,11 @@ class MangaDexClient(MangaClient):
             page += 1
 
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl()) and url.endswith(self.language)
+        return url.startswith(self.base_url.geturl()) and url.endswith(self.language_param)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
-        content = await self.get_url(f'{self.latest_uploads}&translatedLanguage[]={self.language}')
+        content = await self.get_url(f'{self.latest_uploads}&{self.language_param}')
 
         data = json.loads(content)['data']
 
