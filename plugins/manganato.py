@@ -27,7 +27,13 @@ class ManganatoClient(MangaClient):
 
         pattern = re.compile(r'<span .*?>(.+?)</span>')
 
-        names = [re.sub(pattern, r'\1', item['name']).title() for item in li]
+        names = []
+        for item in li:
+            name = item['name']
+            while '</span>' in name:
+                name = re.sub(pattern, r'\1', name)
+            names.append(name.title())
+
         url = [item['link_story'] for item in li]
         images = [item['image'] for item in li]
 
