@@ -17,6 +17,7 @@ class McReaderClient(MangaClient):
     manga_url = urljoin(base_url.geturl(), 'manga')
     chapters = 'all-chapters/'
     latest_uploads = urljoin(base_url.geturl(), 'jumbo/manga/')
+    manga_cover = 'https://images.novel-fast.club/avatar/288x412'
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -31,7 +32,7 @@ class McReaderClient(MangaClient):
         names = [manga['manga_name'] for manga in mangas]
         url = [f'{self.manga_url}/{manga["manga_slug"]}/' for manga in mangas]
 
-        images = [urljoin(self.base_url.geturl(), manga["manga_cover"]) for manga in mangas]
+        images = [f'{self.manga_cover}/{manga["manga_cover"]}' for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
