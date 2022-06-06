@@ -14,6 +14,14 @@ class ChapterFile(SQLModel, table=True):
     url: str = Field(primary_key=True)
     file_id: str
     file_unique_id: str
+    cbz_id: str
+    cbz_unique_id: str
+    telegraph_url: str
+
+
+class MangaOutput(SQLModel, table=True):
+    user_id: str = Field(primary_key=True, regex=r'\d+')
+    output: int = Field
 
 
 class Subscription(SQLModel, table=True):
@@ -51,7 +59,7 @@ class DB(metaclass=LanguageSingleton):
             async with session.begin():
                 session.add(other)
 
-    async def get(self, table, id):
+    async def get(self, table: Type[T], id) -> T:
         async with AsyncSession(self.engine) as session:  # type: AsyncSession
             return await session.get(table, id)
 

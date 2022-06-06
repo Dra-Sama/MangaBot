@@ -1,3 +1,4 @@
+import enum
 import shutil
 from ast import arg
 import asyncio
@@ -7,18 +8,20 @@ import datetime as dt
 import json
 
 import pyrogram.errors
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaDocument
 
+from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf
+from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangaSeeClient, MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, \
     KissMangaClient
 import os
 
 from pyrogram import Client, filters
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, TypedDict
 
-from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName
+from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName, MangaOutput
 from pagination import Pagination
 
 mangas: Dict[str, MangaCard] = dict()
@@ -49,6 +52,22 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     }
 }
 
+
+class OutputOptions(enum.IntEnum):
+    PDF = 1
+    CBZ = 2
+    Telegraph = 4
+
+    def __and__(self, other):
+        return self.value & other
+
+    def __xor__(self, other):
+        return self.value ^ other
+
+    def __or__(self, other):
+        return self.value | other
+
+
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
     for name, plugin in plugin_dict.items():
@@ -62,9 +81,17 @@ def split_list(li):
     return [li[x: x + 2] for x in range(0, len(li), 2)]
 
 
+def get_buttons_for_options(user_options: int):
+    buttons = []
+    for option in OutputOptions:
+        checked = "✅" if option & user_options else "❌"
+        text = f'{checked} {option.name}'
+        buttons.append([InlineKeyboardButton(text, f"options_{option.value}")])
+    return InlineKeyboardMarkup(buttons)
+
+
 env_file = "env.json"
 if os.path.exists(env_file):
-    env_vars = dict()
     with open(env_file) as f:
         env_vars = json.loads(f.read())
 else:
@@ -156,6 +183,15 @@ async def on_cancel_command(client: Client, message: Message):
     return await message.reply("You will no longer receive updates for that manga.")
 
 
+@bot.on_message(filters=filters.command(['options']))
+async def on_options_command(client: Client, message: Message):
+    db = DB()
+    user_options = await db.get(MangaOutput, str(message.from_user.id))
+    user_options = user_options.output if user_options else (1 << 30) - 1
+    buttons = get_buttons_for_options(user_options)
+    return await message.reply("Select the desired output format.", reply_markup=buttons)
+
+
 @bot.on_message(filters=filters.regex(r'^/'))
 async def on_unknown_command(client: Client, message: Message):
     await message.reply("Unknown command")
@@ -170,6 +206,18 @@ async def on_message(client, message: Message):
         split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(message.text)}")
                     for language in plugin_dicts.keys()])
     ))
+
+
+async def options_click(client, callback: CallbackQuery):
+    db = DB()
+    user_options = await db.get(MangaOutput, str(callback.from_user.id))
+    if not user_options:
+        user_options = MangaOutput(user_id=str(callback.from_user.id), output=(2 << 30) - 1)
+    option = int(callback.data.split('_')[-1])
+    user_options.output ^= option
+    buttons = get_buttons_for_options(user_options.output)
+    await db.add(user_options)
+    return await callback.message.edit_reply_markup(reply_markup=buttons)
 
 
 async def language_click(client, callback: CallbackQuery):
@@ -268,29 +316,73 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
 
 
 async def chapter_click(client, data, chat_id):
+    cache_channel = env_vars.get("CACHE_CHANNEL")
+    if not cache_channel:
+        return await bot.send_message(chat_id, "Bot cache channel is not configured correctly.")
     chapter = chapters[data]
+
     db = DB()
 
-    chapterFile: ChapterFile = await db.get(ChapterFile, chapter.url)
+    chapterFile = await db.get(ChapterFile, chapter.url)
+    options = await db.get(MangaOutput, chat_id)
+    options = options.output if options else (1 << 30) - 1
 
     caption = '\n'.join([
         f'{chapter.manga.name} - {chapter.name}',
         f'{chapter.get_url()}'
     ])
 
-    if not chapterFile:
+    download = not chapterFile
+    download = download or options & OutputOptions.PDF and not chapterFile.file_id
+    download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
+    download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
+
+    if download:
         pictures_folder = await chapter.client.download_pictures(chapter)
         if not chapter.pictures:
-            message = await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
-                                             f', please check the chapter at the web\n\n{caption}')
-            return
-        pdf, thumb_path = fld2pdf(pictures_folder, f'{chapter.manga.name} - {chapter.name}')
-        message = await bot.send_document(chat_id, pdf, caption=caption, thumb=thumb_path)
-        await db.add(ChapterFile(url=chapter.url, file_id=message.document.file_id,
-                                 file_unique_id=message.document.file_unique_id))
-        shutil.rmtree(pictures_folder)
-    else:
-        message = await bot.send_document(chat_id, chapterFile.file_id, caption=caption)
+            return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
+                                          f', please check the chapter at the web\n\n{caption}')
+        ch_name = f'{chapter.manga.name} - {chapter.name}'
+        pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
+        cbz = fld2cbz(pictures_folder, ch_name)
+        telegraph_url = await img2tph(chapter, f'{chapter.manga.name} {chapter.name}')
+
+        messages: List[Message] = await bot.send_media_group(cache_channel, [
+            InputMediaDocument(pdf, thumb=thumb_path),
+            InputMediaDocument(cbz, thumb=thumb_path, caption=f'{telegraph_url}')
+        ])
+
+        pdf_m, cbz_m = messages
+
+        if not chapterFile:
+            await db.add(ChapterFile(url=chapter.url, file_id=pdf_m.document.file_id,
+                                     file_unique_id=pdf_m.document.file_unique_id, cbz_id=cbz_m.document.file_id,
+                                     cbz_unique_id=cbz_m.document.file_unique_id, telegraph_url=telegraph_url))
+        else:
+            chapterFile.file_id, chapterFile.file_unique_id, chapterFile.cbz_id, \
+            chapterFile.cbz_unique_id, chapterFile.telegraph_url = \
+                pdf_m.document.file_id, pdf_m.document.file_unique_id, cbz_m.document.file_id, \
+                cbz_m.document.file_unique_id, telegraph_url
+            await db.add(chapterFile)
+
+    chapterFile = await db.get(ChapterFile, chapter.url)
+
+    caption = f'{chapter.manga.name} - {chapter.name}\n'
+    if options & OutputOptions.Telegraph:
+        caption += f'[Read on telegraph]({chapterFile.telegraph_url})\n'
+    caption += f'[Read on website]({chapter.get_url()})'
+    media_docs = []
+    if options & OutputOptions.PDF:
+        media_docs.append(InputMediaDocument(chapterFile.file_id))
+    if options & OutputOptions.CBZ:
+        media_docs.append(InputMediaDocument(chapterFile.cbz_id))
+
+    if len(media_docs) == 0:
+        return await bot.send_message(chat_id, caption)
+    if len(media_docs) == 1:
+        return await bot.send_document(chat_id, media_docs[0].media, caption=caption)
+    media_docs[-1].caption = caption
+    return await bot.send_media_group(chat_id, media_docs)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
@@ -369,6 +461,8 @@ async def on_callback_query(client, callback: CallbackQuery):
         await pagination_click(client, callback)
     elif callback.data in language_query:
         await language_click(client, callback)
+    elif callback.data.startswith('options'):
+        await options_click(client, callback)
     else:
         await bot.answer_callback_query(callback.id, 'This is an old button, please redo the search', show_alert=True)
         return

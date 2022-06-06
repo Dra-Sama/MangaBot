@@ -24,6 +24,8 @@ refresh - Reply to a PDF to refresh bot cache
 
 `API_HASH` - Get this value from [my.telegram.org](https://my.telegram.org/apps)
 
+`CACHE_CHANNEL` - Channel that will be used to only ask for a chapter once
+
 `CHANNEL` - [Optional] Create a new channel (public), copy username wihtout t.me/
 
 `DATABASE_URL_PRIMARY` - [Optional] Will be used as database url. If not given heroku database will be used instead. Get this value from [Elephantsql](https://elephantsql.com/)

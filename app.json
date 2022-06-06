@@ -26,6 +26,10 @@
             "description": "Get this value from @BotFather in telegram",
             "required": true
         },
+        "CACHE_CHANNEL" : {
+            "description": "Channel that will be used to only ask for a chapter once",
+            "required": true
+        },
         "CHANNEL": {
             "description": "Channel that users must be subscribed in order to use the bot.",
             "required": false
