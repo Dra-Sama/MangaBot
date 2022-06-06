@@ -23,6 +23,7 @@ from typing import Dict, Tuple, List, TypedDict
 
 from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName, MangaOutput
 from pagination import Pagination
+from plugins.client import clean
 
 mangas: Dict[str, MangaCard] = dict()
 chapters: Dict[str, MangaChapter] = dict()
@@ -342,10 +343,10 @@ async def chapter_click(client, data, chat_id):
         if not chapter.pictures:
             return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
                                           f', please check the chapter at the web\n\n{caption}')
-        ch_name = f'{chapter.manga.name} - {chapter.name}'
+        ch_name = clean(f'{chapter.manga.name} - {chapter.name}', 45)
         pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
         cbz = fld2cbz(pictures_folder, ch_name)
-        telegraph_url = await img2tph(chapter, f'{chapter.manga.name} {chapter.name}')
+        telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
 
         messages: List[Message] = await bot.send_media_group(cache_channel, [
             InputMediaDocument(pdf, thumb=thumb_path),
@@ -364,6 +365,8 @@ async def chapter_click(client, data, chat_id):
                 pdf_m.document.file_id, pdf_m.document.file_unique_id, cbz_m.document.file_id, \
                 cbz_m.document.file_unique_id, telegraph_url
             await db.add(chapterFile)
+
+        shutil.rmtree(pictures_folder)
 
     chapterFile = await db.get(ChapterFile, chapter.url)
 

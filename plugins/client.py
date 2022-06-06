@@ -39,10 +39,13 @@ class MangaChapter:
         return str(hash(self.url))
 
 
-def clean(folder_name):
-    while '  ' in folder_name:
-        folder_name = folder_name.replace('  ', ' ')
-    return folder_name.replace(':', '')
+def clean(name, length=-1):
+    while '  ' in name:
+        name = name.replace('  ', ' ')
+    name = name.replace(':', '')
+    if length != -1:
+        name = name[:length]
+    return name
 
 
 class MangaClient(ClientSession, metaclass=LanguageSingleton):

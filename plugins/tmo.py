@@ -1,21 +1,13 @@
 from typing import List, AsyncIterable
-from urllib import response
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
 from bs4 import BeautifulSoup
 
-from plugins.client import MangaClient, MangaCard, MangaChapter
 from models import LastChapter
-
-
-class TupleString(tuple):
-
-    def split(self, arg):
-        return self[0].split(arg)
+from plugins.client import MangaClient, MangaCard, MangaChapter
 
 
 class TMOClient(MangaClient):
-
     base_url = urlparse("https://lectortmo.com/")
     search_url = urljoin(base_url.geturl(), "library")
     search_param = 'title'
@@ -64,8 +56,6 @@ class TMOClient(MangaClient):
 
         return urls
 
-
-
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
@@ -82,7 +72,7 @@ class TMOClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [TupleString([quote(img.get('data-src'), safe=':/%').strip(), url]) for img in images]
+        images_url = [quote(img.get('data-src'), safe=':/%').strip() for img in images]
 
         return images_url
 
@@ -128,8 +118,8 @@ class TMOClient(MangaClient):
         return url.startswith(self.base_url.geturl())
 
     async def get_picture(self, manga_chapter, url, *args, **kwargs):
-        headers = {'referer': url[1]}
-        return await super(TMOClient, self).get_picture(manga_chapter, url[0], *args,
+        headers = {'referer': manga_chapter.url}
+        return await super(TMOClient, self).get_picture(manga_chapter, url, *args,
                                                         headers={**self.pre_headers, **headers}, **kwargs)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
