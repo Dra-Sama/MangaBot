@@ -324,7 +324,7 @@ async def chapter_click(client, data, chat_id):
     db = DB()
 
     chapterFile = await db.get(ChapterFile, chapter.url)
-    options = await db.get(MangaOutput, chat_id)
+    options = await db.get(MangaOutput, str(chat_id))
     options = options.output if options else (1 << 30) - 1
 
     caption = '\n'.join([
