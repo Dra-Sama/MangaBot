@@ -135,7 +135,10 @@ class MangaSeeClient(MangaClient):
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         def text_from_document(doc) -> str:
-            return doc['i'] + ' ' + doc['s'] + ' ' + ' '.join(doc['a'])
+            return doc['s'] + ' ' + ' '.join(doc['a'])
+
+        def title_from_document(doc) -> str:
+            return doc['i']
 
         request_url = self.search_url
 
@@ -143,7 +146,7 @@ class MangaSeeClient(MangaClient):
 
         documents = json.loads(content)
 
-        results = search(query, documents, text_from_document)
+        results = search(query, documents, title_from_document, text_from_document)
 
         return self.mangas_from_page(results)
 

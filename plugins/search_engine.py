@@ -67,17 +67,22 @@ class KMP:
         return False
 
 
-def search(query: str, documents: List[T], get_text: Callable[[T], str]):
+def search(query: str, documents: List[T], get_title: Callable[[T], str], get_text: Callable[[T], str]):
     query = query.lower()
     qwords = query.split()
     qkmp = [KMP(word) for word in qwords]
     ranking = []
     for doc in documents:
         score = 0
+        title = get_title(doc).lower()
         text = get_text(doc).lower()
         for kmp in qkmp:
-            if (kmp.KMPSearch(text)):
+            if kmp.KMPSearch(text):
                 score += 1
+            if kmp.KMPSearch(title):
+                score += 5
+            if title == query:
+                score += 1000
         if score > 0:
             ranking.append((score, len(ranking), doc))
     ranking.sort()
