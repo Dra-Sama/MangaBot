@@ -34,6 +34,7 @@ full_pages: Dict[str, List[str]] = dict()
 favourites: Dict[str, MangaCard] = dict()
 language_query: Dict[str, Tuple[str, str]] = dict()
 users_in_channel: Dict[int, dt.datetime] = dict()
+locks: Dict[int, asyncio.Lock] = dict()
 
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
@@ -317,75 +318,80 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
 
 
 async def chapter_click(client, data, chat_id):
-    cache_channel = env_vars.get("CACHE_CHANNEL")
-    if not cache_channel:
-        return await bot.send_message(chat_id, "Bot cache channel is not configured correctly.")
-    chapter = chapters[data]
+    lock = locks.get(chat_id)
+    if not lock:
+        locks[chat_id] = asyncio.Lock()
 
-    db = DB()
+    async with locks[chat_id]:
+        cache_channel = env_vars.get("CACHE_CHANNEL")
+        if not cache_channel:
+            return await bot.send_message(chat_id, "Bot cache channel is not configured correctly.")
+        chapter = chapters[data]
 
-    chapterFile = await db.get(ChapterFile, chapter.url)
-    options = await db.get(MangaOutput, str(chat_id))
-    options = options.output if options else (1 << 30) - 1
+        db = DB()
 
-    caption = '\n'.join([
-        f'{chapter.manga.name} - {chapter.name}',
-        f'{chapter.get_url()}'
-    ])
+        chapterFile = await db.get(ChapterFile, chapter.url)
+        options = await db.get(MangaOutput, str(chat_id))
+        options = options.output if options else (1 << 30) - 1
 
-    download = not chapterFile
-    download = download or options & OutputOptions.PDF and not chapterFile.file_id
-    download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
-    download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
-
-    if download:
-        pictures_folder = await chapter.client.download_pictures(chapter)
-        if not chapter.pictures:
-            return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
-                                          f', please check the chapter at the web\n\n{caption}')
-        ch_name = clean(f'{chapter.manga.name} - {chapter.name}', 45)
-        pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
-        cbz = fld2cbz(pictures_folder, ch_name)
-        telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
-
-        messages: List[Message] = await bot.send_media_group(cache_channel, [
-            InputMediaDocument(pdf, thumb=thumb_path),
-            InputMediaDocument(cbz, thumb=thumb_path, caption=f'{telegraph_url}')
+        caption = '\n'.join([
+            f'{chapter.manga.name} - {chapter.name}',
+            f'{chapter.get_url()}'
         ])
 
-        pdf_m, cbz_m = messages
+        download = not chapterFile
+        download = download or options & OutputOptions.PDF and not chapterFile.file_id
+        download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
+        download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
 
-        if not chapterFile:
-            await db.add(ChapterFile(url=chapter.url, file_id=pdf_m.document.file_id,
-                                     file_unique_id=pdf_m.document.file_unique_id, cbz_id=cbz_m.document.file_id,
-                                     cbz_unique_id=cbz_m.document.file_unique_id, telegraph_url=telegraph_url))
-        else:
-            chapterFile.file_id, chapterFile.file_unique_id, chapterFile.cbz_id, \
-            chapterFile.cbz_unique_id, chapterFile.telegraph_url = \
-                pdf_m.document.file_id, pdf_m.document.file_unique_id, cbz_m.document.file_id, \
-                cbz_m.document.file_unique_id, telegraph_url
-            await db.add(chapterFile)
+        if download:
+            pictures_folder = await chapter.client.download_pictures(chapter)
+            if not chapter.pictures:
+                return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
+                                              f', please check the chapter at the web\n\n{caption}')
+            ch_name = clean(f'{chapter.manga.name} - {chapter.name}', 45)
+            pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
+            cbz = fld2cbz(pictures_folder, ch_name)
+            telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
 
-        shutil.rmtree(pictures_folder)
+            messages: List[Message] = await bot.send_media_group(cache_channel, [
+                InputMediaDocument(pdf, thumb=thumb_path),
+                InputMediaDocument(cbz, thumb=thumb_path, caption=f'{telegraph_url}')
+            ])
 
-    chapterFile = await db.get(ChapterFile, chapter.url)
+            pdf_m, cbz_m = messages
 
-    caption = f'{chapter.manga.name} - {chapter.name}\n'
-    if options & OutputOptions.Telegraph:
-        caption += f'[Read on telegraph]({chapterFile.telegraph_url})\n'
-    caption += f'[Read on website]({chapter.get_url()})'
-    media_docs = []
-    if options & OutputOptions.PDF:
-        media_docs.append(InputMediaDocument(chapterFile.file_id))
-    if options & OutputOptions.CBZ:
-        media_docs.append(InputMediaDocument(chapterFile.cbz_id))
+            if not chapterFile:
+                await db.add(ChapterFile(url=chapter.url, file_id=pdf_m.document.file_id,
+                                         file_unique_id=pdf_m.document.file_unique_id, cbz_id=cbz_m.document.file_id,
+                                         cbz_unique_id=cbz_m.document.file_unique_id, telegraph_url=telegraph_url))
+            else:
+                chapterFile.file_id, chapterFile.file_unique_id, chapterFile.cbz_id, \
+                chapterFile.cbz_unique_id, chapterFile.telegraph_url = \
+                    pdf_m.document.file_id, pdf_m.document.file_unique_id, cbz_m.document.file_id, \
+                    cbz_m.document.file_unique_id, telegraph_url
+                await db.add(chapterFile)
 
-    if len(media_docs) == 0:
-        return await bot.send_message(chat_id, caption)
-    if len(media_docs) == 1:
-        return await bot.send_document(chat_id, media_docs[0].media, caption=caption)
-    media_docs[-1].caption = caption
-    return await bot.send_media_group(chat_id, media_docs)
+            shutil.rmtree(pictures_folder)
+
+        chapterFile = await db.get(ChapterFile, chapter.url)
+
+        caption = f'{chapter.manga.name} - {chapter.name}\n'
+        if options & OutputOptions.Telegraph:
+            caption += f'[Read on telegraph]({chapterFile.telegraph_url})\n'
+        caption += f'[Read on website]({chapter.get_url()})'
+        media_docs = []
+        if options & OutputOptions.PDF:
+            media_docs.append(InputMediaDocument(chapterFile.file_id))
+        if options & OutputOptions.CBZ:
+            media_docs.append(InputMediaDocument(chapterFile.cbz_id))
+
+        if len(media_docs) == 0:
+            return await bot.send_message(chat_id, caption)
+        if len(media_docs) == 1:
+            return await bot.send_document(chat_id, media_docs[0].media, caption=caption)
+        media_docs[-1].caption = caption
+        return await bot.send_media_group(chat_id, media_docs)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
