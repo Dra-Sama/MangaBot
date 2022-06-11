@@ -87,4 +87,4 @@ def search(query: str, documents: List[T], get_title: Callable[[T], str], get_te
             ranking.append((score, len(ranking), doc))
     ranking.sort()
     ranking.reverse()
-    return [doc for (_, _, doc) in ranking[:10]]
+    return [doc for (_, _, doc) in ranking]

@@ -146,7 +146,7 @@ class MangaSeeClient(MangaClient):
 
         documents = json.loads(content)
 
-        results = search(query, documents, title_from_document, text_from_document)
+        results = search(query, documents, title_from_document, text_from_document)[(page - 1) * 20:page * 20]
 
         return self.mangas_from_page(results)
 
