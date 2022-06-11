@@ -36,6 +36,7 @@ ICO = types['ICO'] = 'ICO'
 JPEG = types['JPEG'] = 'JPEG'
 PNG = types['PNG'] = 'PNG'
 TIFF = types['TIFF'] = 'TIFF'
+WEBP = types['WEBP'] = 'WEBP'
 
 image_fields = ['path', 'type', 'file_size', 'width', 'height']
 
@@ -119,7 +120,7 @@ def get_image_metadata_from_bytesio(input, size, file_path=None):
     """
     height = -1
     width = -1
-    data = input.read(26)
+    data = input.read(30)
     msg = " raised while trying to decode as JPEG."
 
     if (size >= 10) and data[:6] in (b'GIF87a', b'GIF89a'):
@@ -169,6 +170,10 @@ def get_image_metadata_from_bytesio(input, size, file_path=None):
             raise UnknownImageFormat("ValueError" + msg)
         except Exception as e:
             raise UnknownImageFormat(e.__class__.__name__ + msg)
+    elif (size >= 30) and data.startswith(b'RIFF') and data[8:15] == b'WEBPVP8':
+        # WEBP
+        imgtype = WEBP
+        width, height = int(data[26]) | int(data[27]) << 8, int(data[28]) | int(data[29]) << 8
     elif (size >= 26) and data.startswith(b'BM'):
         # BMP
         imgtype = 'BMP'
