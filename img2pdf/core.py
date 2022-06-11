@@ -48,7 +48,7 @@ def pil_image(path: Path) -> BytesIO:
     img = Image.open(path)
     try:
         membuf = BytesIO()
-        if path.suffix == '.webp':
+        if path.suffix == '.webp' or path.suffix == '.jpg':
             img.save(membuf, format='jpeg')
         else:
             img.save(membuf)
