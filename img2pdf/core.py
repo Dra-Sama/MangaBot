@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 from typing import List, BinaryIO
 from pathlib import Path
 from fpdf import FPDF
@@ -43,6 +44,19 @@ def old_img2pdf(files: List[Path], out: Path):
         img.close()
 
 
+def pil_image(path: Path) -> BytesIO:
+    img = Image.open(path)
+    try:
+        membuf = BytesIO()
+        if path.suffix == '.webp':
+            img.save(membuf, format='jpeg')
+        else:
+            img.save(membuf)
+    finally:
+        img.close()
+    return membuf
+
+
 def img2pdf(files: List[Path], out: Path):
     pdf = FPDF('P', 'pt')
     for imageFile in files:
@@ -50,8 +64,12 @@ def img2pdf(files: List[Path], out: Path):
         
         pdf.add_page(format=(width, height))
 
-        pdf.image(imageFile, 0, 0, width, height)
+        img_bytes = pil_image(imageFile)
+
+        pdf.image(img_bytes, 0, 0, width, height)
+
+        img_bytes.close()
 
     pdf.set_title(out.stem)
     pdf.output(out, "F")
-    del pdf
+    pdf.close()
