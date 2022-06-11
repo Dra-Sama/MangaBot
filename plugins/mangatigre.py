@@ -72,16 +72,17 @@ class MangatigreClient(MangaClient):
         bs = BeautifulSoup(content, "html.parser")
 
         btn = bs.find('button', {'data-read-type': 2})
-        token = btn.get('data-token')
+        if btn:
+            token = btn.get('data-token')
 
-        data = {
-            '_method': 'patch',
-            '_token': token,
-            'read_type': 2
-        }
+            data = {
+                '_method': 'patch',
+                '_token': token,
+                'read_type': 2
+            }
 
-        content = await self.get_url(f'{response.url}/read-type', data=data, method='post')
-        bs = BeautifulSoup(content, "html.parser")
+            content = await self.get_url(f'{response.url}/read-type', data=data, method='post')
+            bs = BeautifulSoup(content, "html.parser")
 
         ul = bs.find("div", {"class": "display-zone"})
 
