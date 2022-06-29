@@ -14,13 +14,7 @@ def fld2pdf(folder: Path, out: str):
     
     files = [file for file in folder.glob(r'*') if re.match(r'.*\.(jpg|png|jpeg|webp)', file.name)]
     files.sort(key=lambda x: x.name)
-    thumbnail = Image.open(files[0]).convert('RGB')
-    tg_max_size = (300, 300)
-    thumbnail.thumbnail(tg_max_size)
-    thumb_path = folder / 'thumbnail' / f'thumbnail.jpg'
-    os.makedirs(thumb_path.parent, exist_ok=True)
-    thumbnail.save(thumb_path)
-    thumbnail.close()
+    thumb_path = make_thumb(folder, files)
     pdf = folder / f'{out}.pdf'
     try:
         img2pdf(files, pdf)
@@ -73,3 +67,28 @@ def img2pdf(files: List[Path], out: Path):
     pdf.set_title(out.stem)
     pdf.output(out, "F")
     pdf.close()
+
+
+def make_thumb(folder, files):
+    aspect_ratio = 0.7
+    if len(files) > 1:
+        with Image.open(files[1]) as img:
+            aspect_ratio = img.width / img.height
+
+    thumbnail = Image.open(files[0]).convert('RGB')
+    tg_max_size = (300, 300)
+    thumbnail.thumbnail(tg_max_size)
+    thumb_path = folder / 'thumbnail' / f'thumbnail.jpg'
+    os.makedirs(thumb_path.parent, exist_ok=True)
+    thumbnail = crop_thumb(thumbnail, aspect_ratio)
+    thumbnail.save(thumb_path)
+    thumbnail.close()
+    return thumb_path
+
+
+def crop_thumb(thumb: Image.Image, aspect_ratio):
+    w, h = thumb.width, thumb.height
+    if w * 2 <= h:
+        b = int(h - (w / aspect_ratio))
+        thumb = thumb.crop((0, 0, w, b))
+    return thumb
