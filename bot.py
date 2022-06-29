@@ -327,6 +327,13 @@ async def chapter_click(client, data, chat_id):
         cache_channel = env_vars.get("CACHE_CHANNEL")
         if not cache_channel:
             return await bot.send_message(chat_id, "Bot cache channel is not configured correctly.")
+
+        # Try convert to int cache_channel, because it can be id or username
+        try:
+            cache_channel = int(cache_channel)
+        except ValueError:
+            pass
+
         chapter = chapters[data]
 
         db = DB()
