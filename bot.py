@@ -82,7 +82,7 @@ for lang, plugin_dict in plugin_dicts.items():
         plugins[identifier] = plugin
 
 # subsPaused = ["[🇪🇸 ES] TMO"]
-subsPaused = disabled + ["[🇪🇸 ES] TMO"]
+subsPaused = disabled + []
 
 
 def split_list(li):
@@ -562,6 +562,7 @@ async def update_mangas():
                 agen = client.iter_chapters(url, manga_name)
                 last_chapter = await anext(agen)
                 await db.add(LastChapter(url=url, chapter_url=last_chapter.url))
+                await asyncio.sleep(10)
             else:
                 last_chapter = chapters_dictionary[url]
                 new_chapters: List[MangaChapter] = []
@@ -603,8 +604,14 @@ async def update_mangas():
 async def manga_updater():
     minutes = 5
     while True:
+        wait_time = minutes * 60
         try:
+            start = dt.datetime.now()
             await update_mangas()
+            elapsed = dt.datetime.now() - start
+            wait_time = max((dt.timedelta(seconds=wait_time) - elapsed).total_seconds(), 0)
+            print(f'Time elapsed updating mangas: {elapsed}, waiting for {wait_time}')
         except BaseException as e:
             print(f'An exception occurred during chapters update: {e}')
-        await asyncio.sleep(60 * minutes)
+        if wait_time:
+            await asyncio.sleep(wait_time)
