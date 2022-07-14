@@ -71,7 +71,7 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
-disabled = ["[🇪🇸 ES] TMO", "[🇬🇧 EN] McReader"]
+disabled = ["[🇬🇧 EN] McReader"]
 
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
@@ -82,7 +82,7 @@ for lang, plugin_dict in plugin_dicts.items():
         plugins[identifier] = plugin
 
 # subsPaused = ["[🇪🇸 ES] TMO"]
-subsPaused = disabled + []
+subsPaused = disabled + ["[🇪🇸 ES] TMO"]
 
 
 def split_list(li):
