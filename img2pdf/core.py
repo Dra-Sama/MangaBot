@@ -43,10 +43,7 @@ def pil_image(path: Path) -> (BytesIO, int, int):
     width, height = img.width, img.height
     try:
         membuf = BytesIO()
-        if path.suffix == '.webp' or path.suffix == '.jpg' or path.suffix == '.jpeg':
-            img.save(membuf, format='jpeg')
-        else:
-            img.save(membuf, format='png')
+        img.save(membuf, format='JPEG')
     finally:
         img.close()
     return membuf, width, height
