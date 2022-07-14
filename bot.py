@@ -71,13 +71,18 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
+disabled = ["[🇪🇸 ES] TMO"]
+
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
     for name, plugin in plugin_dict.items():
-        plugins[f'[{lang}] {name}'] = plugin
+        identifier = f'[{lang}] {name}'
+        if identifier in disabled:
+            continue
+        plugins[identifier] = plugin
 
-# subsPaused = ["[ES] TMO"]
-subsPaused = ["[ES] TMO"]
+# subsPaused = ["[🇪🇸 ES] TMO"]
+subsPaused = disabled + []
 
 
 def split_list(li):
@@ -234,7 +239,7 @@ async def language_click(client, callback: CallbackQuery):
         queries[f"query_{lang}_{identifier}_{hash(query)}"] = (manga_client, query)
     await callback.message.edit(f"Language: {lang}\n\nSelect search plugin.", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(identifier, callback_data=f"query_{lang}_{identifier}_{hash(query)}")
-                    for identifier in plugin_dicts[lang].keys()]) + [
+                    for identifier in plugin_dicts[lang].keys() if f'[{lang}] {identifier}' not in disabled]) + [
             [InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
     ))
 
