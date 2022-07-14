@@ -12,8 +12,8 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 class McReaderClient(MangaClient):
 
     base_url = urlparse("https://www.mcreader.net/")
-    search_url = urljoin(base_url.geturl(), 'api/v1/searchresults/')
-    search_param = 'query'
+    search_url = urljoin(base_url.geturl(), 'autocomplete')
+    search_param = 'term'
     manga_url = urljoin(base_url.geturl(), 'manga')
     chapters = 'all-chapters/'
     latest_uploads = urljoin(base_url.geturl(), 'jumbo/manga/')
@@ -90,12 +90,12 @@ class McReaderClient(MangaClient):
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        query = quote_plus(query)
+        query = quote(query)
 
         request_url = self.search_url
 
         if query:
-            request_url += f'?{self.search_param}={query}&format=json'
+            request_url += f'?{self.search_param}={query}'
 
         content = await self.get_url(request_url)
 
