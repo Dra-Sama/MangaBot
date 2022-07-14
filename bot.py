@@ -400,11 +400,13 @@ async def chapter_click(client, data, chat_id):
             media_docs.append(InputMediaDocument(chapterFile.cbz_id))
 
         if len(media_docs) == 0:
-            return await bot.send_message(chat_id, caption)
-        if len(media_docs) == 1:
-            return await bot.send_document(chat_id, media_docs[0].media, caption=caption)
-        media_docs[-1].caption = caption
-        return await bot.send_media_group(chat_id, media_docs)
+            await bot.send_message(chat_id, caption)
+        elif len(media_docs) == 1:
+            await bot.send_document(chat_id, media_docs[0].media, caption=caption)
+        else:
+            media_docs[-1].caption = caption
+            await bot.send_media_group(chat_id, media_docs)
+        await asyncio.sleep(1)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
