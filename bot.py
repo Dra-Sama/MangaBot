@@ -490,6 +490,7 @@ async def on_callback_query(client, callback: CallbackQuery):
 
 
 async def update_mangas():
+    print("Updating mangas")
     db = DB()
     subscriptions = await db.get_all(Subscription)
     last_chapters = await db.get_all(LastChapter)
@@ -529,7 +530,11 @@ async def update_mangas():
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
         if len(to_check) == 0:
             continue
-        updated, not_updated = await client.check_updated_urls(to_check)
+        try:
+            updated, not_updated = await client.check_updated_urls(to_check)
+        except BaseException as e:
+            print(f"Error while checking updates for site: {client.name}, err: ", e)
+            not_updated = list(urls)
         for url in not_updated:
             del url_client_dictionary[url]
         # print(f'Updated:\t{list(updated)}')
