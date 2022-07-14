@@ -421,7 +421,7 @@ async def full_page_click(client: Client, callback: CallbackQuery):
             await chapter_click(client, chapter_data, callback.from_user.id)
         except Exception as e:
             print(e)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 
 
 async def favourite_click(client: Client, callback: CallbackQuery):
