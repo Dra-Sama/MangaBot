@@ -2,7 +2,7 @@ import os
 from typing import Type, List, TypeVar
 
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import SQLModel, Field, Session, select
+from sqlmodel import SQLModel, Field, Session, select, delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from tools import LanguageSingleton
@@ -82,3 +82,10 @@ class DB(metaclass=LanguageSingleton):
         async with AsyncSession(self.engine) as session:
             statement = select(MangaName).where(Subscription.user_id == user_id).where(Subscription.url == MangaName.url)
             return (await session.exec(statement=statement)).all()
+
+    async def erase_subs(self, user_id: str):
+        async with AsyncSession(self.engine) as session:
+            async with session.begin():
+                statement = delete(Subscription).where(Subscription.user_id == user_id)
+                await session.exec(statement=statement)
+

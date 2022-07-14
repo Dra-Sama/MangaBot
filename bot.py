@@ -489,6 +489,12 @@ async def on_callback_query(client, callback: CallbackQuery):
         print(e)
 
 
+async def remove_subscriptions(sub: str):
+    db = DB()
+
+    await db.erase_subs(sub)
+
+
 async def update_mangas():
     print("Updating mangas")
     db = DB()
@@ -570,15 +576,22 @@ async def update_mangas():
         except BaseException as e:
             print(f'An exception occurred getting new chapters for url {url}: {e}')
 
+    blocked = set()
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
             print(f'{chapter.manga.name} - {chapter.name}')
             for sub in subs_dictionary[url]:
+                if sub in blocked:
+                    continue
                 try:
                     await chapter_click(bot, chapter.unique(), int(sub))
+                except pyrogram.errors.UserIsBlocked:
+                    print(f'User {sub} blocked the bot')
+                    await remove_subscriptions(sub)
+                    blocked.add(sub)
                 except BaseException as e:
                     print(f'An exception occurred sending new chapter: {e}')
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.5)
             await asyncio.sleep(1)
 
 
