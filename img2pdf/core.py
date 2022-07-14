@@ -38,8 +38,9 @@ def old_img2pdf(files: List[Path], out: Path):
         img.close()
 
 
-def pil_image(path: Path) -> BytesIO:
+def pil_image(path: Path) -> (BytesIO, int, int):
     img = Image.open(path)
+    width, height = img.width, img.height
     try:
         membuf = BytesIO()
         if path.suffix == '.webp' or path.suffix == '.jpg':
@@ -48,17 +49,15 @@ def pil_image(path: Path) -> BytesIO:
             img.save(membuf)
     finally:
         img.close()
-    return membuf
+    return membuf, width, height
 
 
 def img2pdf(files: List[Path], out: Path):
     pdf = FPDF('P', 'pt')
     for imageFile in files:
-        width, height = get_image_size(imageFile)
+        img_bytes, width, height = pil_image(imageFile)
         
         pdf.add_page(format=(width, height))
-
-        img_bytes = pil_image(imageFile)
 
         pdf.image(img_bytes, 0, 0, width, height)
 

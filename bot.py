@@ -460,6 +460,8 @@ def is_pagination_data(callback: CallbackQuery):
     if pagination_id not in paginations:
         return False
     pagination = paginations[pagination_id]
+    if not pagination.message:
+        return False
     if pagination.message.chat.id != callback.from_user.id:
         return False
     if pagination.message.message_id != callback.message.message_id:
