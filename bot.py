@@ -77,7 +77,7 @@ for lang, plugin_dict in plugin_dicts.items():
         plugins[f'[{lang}] {name}'] = plugin
 
 # subsPaused = ["[ES] TMO"]
-subsPaused = []
+subsPaused = ["[ES] TMO"]
 
 
 def split_list(li):
