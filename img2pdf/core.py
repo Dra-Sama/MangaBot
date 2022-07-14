@@ -43,10 +43,10 @@ def pil_image(path: Path) -> (BytesIO, int, int):
     width, height = img.width, img.height
     try:
         membuf = BytesIO()
-        if path.suffix == '.webp' or path.suffix == '.jpg':
+        if path.suffix == '.webp' or path.suffix == '.jpg' or path.suffix == '.jpeg':
             img.save(membuf, format='jpeg')
         else:
-            img.save(membuf)
+            img.save(membuf, format='png')
     finally:
         img.close()
     return membuf, width, height
@@ -89,5 +89,8 @@ def crop_thumb(thumb: Image.Image, aspect_ratio):
     w, h = thumb.width, thumb.height
     if w * 2 <= h:
         b = int(h - (w / aspect_ratio))
-        thumb = thumb.crop((0, 0, w, b))
+        try:
+            thumb = thumb.crop((0, 0, w, b))
+        except BaseException as err:
+            print(f'Error cropping thumbnail: {err}')
     return thumb
