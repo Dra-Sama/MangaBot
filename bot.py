@@ -578,7 +578,7 @@ async def update_mangas():
                     for chapter in new_chapters:
                         if chapter.unique() not in chapters:
                             chapters[chapter.unique()] = chapter
-            await asyncio.sleep(1)
+                await asyncio.sleep(1)
         except BaseException as e:
             print(f'An exception occurred getting new chapters for url {url}: {e}')
 
