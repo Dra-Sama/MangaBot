@@ -537,11 +537,11 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        print('')
-        print(f'Updating {client.name}')
-        print(f'Urls:\t{list(urls)}')
-        new_urls = [url for url in urls if not chapters_dictionary.get(url)]
-        print(f'New Urls:\t{new_urls}')
+        # print('')
+        # print(f'Updating {client.name}')
+        # print(f'Urls:\t{list(urls)}')
+        # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
+        # print(f'New Urls:\t{new_urls}')
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
         if len(to_check) == 0:
             continue
@@ -552,8 +552,8 @@ async def update_mangas():
             not_updated = list(urls)
         for url in not_updated:
             del url_client_dictionary[url]
-        print(f'Updated:\t{list(updated)}')
-        print(f'Not Updated:\t{list(not_updated)}')
+        # print(f'Updated:\t{list(updated)}')
+        # print(f'Not Updated:\t{list(not_updated)}')
 
     updated = dict()
 
@@ -570,11 +570,14 @@ async def update_mangas():
             else:
                 last_chapter = chapters_dictionary[url]
                 new_chapters: List[MangaChapter] = []
+                counter = 0
                 async for chapter in client.iter_chapters(url, manga_name):
                     if chapter.url == last_chapter.chapter_url:
                         break
                     new_chapters.append(chapter)
-                new_chapters = new_chapters[:20]
+                    counter += 1
+                    if counter == 20:
+                        break
                 if new_chapters:
                     last_chapter.chapter_url = new_chapters[0].url
                     await db.add(last_chapter)
