@@ -9,8 +9,8 @@ async def retry_on_flood(awaitable):
         try:
             return await awaitable
         except pyrogram.errors.FloodWait as err:
-            await asyncio.sleep(err.x)
             print(f'FloodWait, waiting {err.x} seconds')
+            await asyncio.sleep(err.x)
             continue
         except pyrogram.errors.RPCError as err:
             if err.MESSAGE == 'FloodWait':

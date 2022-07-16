@@ -39,7 +39,7 @@ def old_img2pdf(files: List[Path], out: Path):
 
 
 def pil_image(path: Path) -> (BytesIO, int, int):
-    img = Image.open(path)
+    img = new_img(path)
     width, height = img.width, img.height
     try:
         membuf = BytesIO()
