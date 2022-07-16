@@ -385,7 +385,7 @@ async def chapter_click(client, data, chat_id):
                     cbz_m.document.file_unique_id, telegraph_url
                 await db.add(chapterFile)
 
-            shutil.rmtree(pictures_folder)
+            # shutil.rmtree(pictures_folder)
 
         chapterFile = await db.get(ChapterFile, chapter.url)
 
@@ -537,11 +537,11 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        # print('')
-        # print(f'Updating {client.name}')
-        # print(f'Urls:\t{list(urls)}')
-        # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
-        # print(f'New Urls:\t{new_urls}')
+        print('')
+        print(f'Updating {client.name}')
+        print(f'Urls:\t{list(urls)}')
+        new_urls = [url for url in urls if not chapters_dictionary.get(url)]
+        print(f'New Urls:\t{new_urls}')
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
         if len(to_check) == 0:
             continue
@@ -552,8 +552,8 @@ async def update_mangas():
             not_updated = list(urls)
         for url in not_updated:
             del url_client_dictionary[url]
-        # print(f'Updated:\t{list(updated)}')
-        # print(f'Not Updated:\t{list(not_updated)}')
+        print(f'Updated:\t{list(updated)}')
+        print(f'Not Updated:\t{list(not_updated)}')
 
     updated = dict()
 
