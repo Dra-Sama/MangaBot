@@ -40,9 +40,10 @@ class ManhuaKoClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        lis = bs.find_all("li", {"class": "collection-item"})
+        table = bs.find("table", {"class": "table-chapters"})
+        trs = table.find_all('tr')
 
-        items = [li.findNext('a') for li in lis]
+        items = [tr.findNext('a') for tr in trs]
 
         links = [item.get('href') for item in items]
         texts = [item.string for item in items]
