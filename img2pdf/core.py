@@ -73,10 +73,10 @@ def make_thumb(folder, files):
 
     thumbnail = Image.open(files[0]).convert('RGB')
     tg_max_size = (300, 300)
+    thumbnail = crop_thumb(thumbnail, aspect_ratio)
     thumbnail.thumbnail(tg_max_size)
     thumb_path = folder / 'thumbnail' / f'thumbnail.jpg'
     os.makedirs(thumb_path.parent, exist_ok=True)
-    thumbnail = crop_thumb(thumbnail, aspect_ratio)
     thumbnail.save(thumb_path)
     thumbnail.close()
     return thumb_path
@@ -86,8 +86,5 @@ def crop_thumb(thumb: Image.Image, aspect_ratio):
     w, h = thumb.width, thumb.height
     if w * 2 <= h:
         b = int(h - (w / aspect_ratio))
-        try:
-            thumb = thumb.crop((0, 0, w, b))
-        except BaseException as err:
-            print(f'Error cropping thumbnail: {err}')
+        thumb = thumb.crop((0, 0, w, b))
     return thumb
