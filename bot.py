@@ -387,7 +387,7 @@ async def chapter_click(client, data, chat_id):
                     cbz_m.document.file_unique_id, telegraph_url
                 await db.add(chapterFile)
 
-            # shutil.rmtree(pictures_folder)
+            shutil.rmtree(pictures_folder)
 
         chapterFile = await db.get(ChapterFile, chapter.url)
 

@@ -86,5 +86,7 @@ def crop_thumb(thumb: Image.Image, aspect_ratio):
     w, h = thumb.width, thumb.height
     if w * 2 <= h:
         b = int(h - (w / aspect_ratio))
+        if b <= 0:
+            b = w
         thumb = thumb.crop((0, 0, w, b))
     return thumb
