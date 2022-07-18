@@ -42,7 +42,7 @@ class MangaHasuClient(MangaClient):
         a_elems = [li.find('a') for li in lis]
 
         links = [a.get('href') for a in a_elems]
-        texts = [a.text for a in a_elems]
+        texts = [(a.text if not a.text.startswith(manga.name) else a.text[len(manga.name):]).strip() for a in a_elems]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
