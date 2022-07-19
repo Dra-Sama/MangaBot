@@ -14,6 +14,7 @@ class ManganatoClient(MangaClient):
     base_url = urlparse("https://manganato.com/")
     search_url = urljoin(base_url.geturl(), 'getstorysearchjson')
     search_param = 'searchword'
+    read_url = 'https://readmanganato.com/'
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -126,7 +127,7 @@ class ManganatoClient(MangaClient):
             yield chapter
 
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl())
+        return url.startswith(self.read_url) or url.startswith(self.base_url.geturl())
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
