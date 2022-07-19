@@ -144,7 +144,7 @@ async def on_private_message(client: Client, message: Message):
 
 
 @bot.on_message(filters=filters.command(['start']))
-async def on_refresh(client: Client, message: Message):
+async def on_start(client: Client, message: Message):
     await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
                         "\n"
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
@@ -155,12 +155,21 @@ async def on_refresh(client: Client, message: Message):
 
 @bot.on_message(filters=filters.command(['refresh']))
 async def on_refresh(client: Client, message: Message):
-    if not message.reply_to_message or not message.reply_to_message.outgoing or not message.reply_to_message.document \
-            or not message.reply_to_message.document.file_name.lower().endswith('.pdf'):
-        return await message.reply("This command only works when it replies to a pdf file that bot sent to you")
-    replied = message.reply_to_message
+    text = message.reply_to_message.text or message.reply_to_message.caption
+    if text:
+        regex = re.compile(r'\[Read on telegraph]\((.*)\)')
+        match = regex.search(text.markdown)
+    else:
+        match = None
+    document = message.reply_to_message.document
+    if not (message.reply_to_message and message.reply_to_message.outgoing and
+            ((document and document.file_name[-4:].lower() in ['.pdf', '.cbz']) or match)):
+        return await message.reply("This command only works when it replies to a manga file that bot sent to you")
     db = DB()
-    chapter = await db.get_chapter_file_by_id(replied.document.file_unique_id)
+    if document:
+        chapter = await db.get_chapter_file_by_id(document.file_unique_id)
+    else:
+        chapter = await db.get_chapter_file_by_id(match.group(1))
     if not chapter:
         return await message.reply("This file was already refreshed")
     await db.erase(chapter)
@@ -358,6 +367,7 @@ async def chapter_click(client, data, chat_id):
         download = download or options & OutputOptions.PDF and not chapterFile.file_id
         download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
         download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
+        download = download and options & ((1 << len(OutputOptions)) - 1) != 0
 
         if download:
             pictures_folder = await chapter.client.download_pictures(chapter)

@@ -73,9 +73,11 @@ class DB(metaclass=LanguageSingleton):
             async with session.begin():
                 await session.delete(other)
 
-    async def get_chapter_file_by_id(self, file_id: str):
+    async def get_chapter_file_by_id(self, id: str):
         async with AsyncSession(self.engine) as session:  # type: AsyncSession
-            statement = select(ChapterFile).where(ChapterFile.file_unique_id == file_id)
+            statement = select(ChapterFile).where((ChapterFile.file_unique_id == id) |
+                                                  (ChapterFile.cbz_unique_id == id) |
+                                                  (ChapterFile.telegraph_url == id))
             return (await session.exec(statement=statement)).first()
 
     async def get_subs(self, user_id: str) -> List[MangaName]:
