@@ -388,10 +388,10 @@ async def chapter_click(client, data, chat_id):
             cbz = fld2cbz(pictures_folder, ch_name)
             telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
 
-            messages: List[Message] = await retry_on_flood(bot.send_media_group(cache_channel, [
+            messages: List[Message] = await retry_on_flood(bot.send_media_group)(cache_channel, [
                 InputMediaDocument(pdf, thumb=thumb_path),
                 InputMediaDocument(cbz, thumb=thumb_path, caption=f'{telegraph_url}')
-            ]))
+            ])
 
             pdf_m, cbz_m = messages
 
@@ -421,12 +421,12 @@ async def chapter_click(client, data, chat_id):
             media_docs.append(InputMediaDocument(chapterFile.cbz_id))
 
         if len(media_docs) == 0:
-            await retry_on_flood(bot.send_message(chat_id, caption))
+            await retry_on_flood(bot.send_message)(chat_id, caption)
         elif len(media_docs) == 1:
-            await retry_on_flood(bot.send_document(chat_id, media_docs[0].media, caption=caption))
+            await retry_on_flood(bot.send_document)(chat_id, media_docs[0].media, caption=caption)
         else:
             media_docs[-1].caption = caption
-            await retry_on_flood(bot.send_media_group(chat_id, media_docs))
+            await retry_on_flood(bot.send_media_group)(chat_id, media_docs)
         await asyncio.sleep(1)
 
 
