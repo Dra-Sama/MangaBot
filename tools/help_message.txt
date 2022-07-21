@@ -5,3 +5,8 @@ How to use? Just type the name of some manga you want to keep up to date.
 For example:
 `Fire Force`
 
+**Commands**:
+/start - show some basic info about how to use the bot
+/subs - show all the subscriptions you have
+/refresh - reply to a pdf to refresh bot cache
+/options - disable/enable pdf, cbz and/or telegram view
