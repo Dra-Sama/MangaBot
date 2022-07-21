@@ -57,6 +57,8 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     }
 }
 
+with open("tools/help_message.txt", "r") as f:
+    help_msg = f.read()
 
 class OutputOptions(enum.IntEnum):
     PDF = 1
@@ -150,17 +152,14 @@ async def on_start(client: Client, message: Message):
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
                         "\n"
                         "For example:\n"
-                        "`Fire Force`")
+                        "`Fire Force`\n"
+                        "\n"
+                        "Check /help for more information.")
 
 
 @bot.on_message(filters=filters.command(['help']))
-async def on_help(client: Client, message: Message):
-    txt = "Welcome to the best manga pdf bot in telegram!!\n"
-          "\n"
-          "How to use? Just type the name of some manga you want to keep up to date.\n"
-          "\n"
-          "For example:\n"
-          "`Fire Force`"
+async def on_help(client: Client, message: Message): 
+    await message.reply(help_msg)
     
 
 @bot.on_message(filters=filters.command(['refresh']))
