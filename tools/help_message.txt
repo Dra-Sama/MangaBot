@@ -8,5 +8,5 @@ For example:
 **Commands**:
 /start - Show some basic info about how to use the bot
 /subs - Show all the subscriptions you have. After you search for a certain manga in any of the websites that the bot offers, you will have the option to subscribe to that manga in that specific website. When you are subscribed to a manga, the bot will send you the new chapters of that manga as soon as they are published in the website. With this command you can also cancel any of your subscriptions.
-/refresh - Reply to a pdf to refresh bot cache
-/options - Disable/enable pdf, cbz and/or telegram view
+/refresh - Reply to a manga chapter to refresh bot cache. If you want to refresh the images of a specific manga chapter, then this command will delete the cache with that information. This is useful if the website has changed the chapter images. You can request again the manga chapter to see the new images.
+/options - Disable/enable pdf, cbz and/or telegraph output format. This will determine what the bot will send you. 
