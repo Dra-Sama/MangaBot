@@ -13,4 +13,5 @@ bot.session-journal
 /test.db
 
 venv
+.venv
 env.json
