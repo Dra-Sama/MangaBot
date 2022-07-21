@@ -152,6 +152,17 @@ async def on_start(client: Client, message: Message):
                         "For example:\n"
                         "`Fire Force`")
 
+@bot.on_message(filters=filters.command(['help']))
+async def on_help(client: Client, message: Message):
+    txt = "Welcome to the best manga pdf bot in telegram!!\n"
+          "\n"
+          "How to use? Just type the name of some manga you want to keep up to date.\n"
+          "\n"
+          "For example:\n"
+          "`Fire Force`"
+    
+
+
 
 @bot.on_message(filters=filters.command(['refresh']))
 async def on_refresh(client: Client, message: Message):

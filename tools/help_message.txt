@@ -1,0 +1,7 @@
+Welcome to the best manga pdf bot in telegram!!
+
+How to use? Just type the name of some manga you want to keep up to date.
+
+For example:
+`Fire Force`
+
