@@ -6,7 +6,7 @@ For example:
 `Fire Force`
 
 **Commands**:
-/start - show some basic info about how to use the bot
-/subs - show all the subscriptions you have
-/refresh - reply to a pdf to refresh bot cache
-/options - disable/enable pdf, cbz and/or telegram view
+/start - Show some basic info about how to use the bot
+/subs - Show all the subscriptions you have. After you search for a certain manga in any of the websites that the bot offers, you will have the option to subscribe to that manga in that specific website. When you are subscribed to a manga, the bot will send you the new chapters of that manga as soon as they are published in the website. With this command you can also cancel any of your subscriptions.
+/refresh - Reply to a pdf to refresh bot cache
+/options - Disable/enable pdf, cbz and/or telegram view
