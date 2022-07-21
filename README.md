@@ -12,7 +12,7 @@ Read manga from your favourites websites on telegram.
 start - Usage Info
 subs - Your suscriptions
 refresh - Reply to a PDF to refresh bot cache
-
+options - Disable/enable pdf, cbz and/or telegraph output format
 ```
 
 
