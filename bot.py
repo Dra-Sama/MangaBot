@@ -15,7 +15,7 @@ from img2pdf.core import fld2pdf
 from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangaSeeClient, MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, \
-    KissMangaClient, MangatigreClient, MangaHasuClient
+    KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient
 import os
 
 from pyrogram import Client, filters
@@ -47,7 +47,8 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "Manganelo": ManganeloClient(),
         "Manganato": ManganatoClient(),
         "KissManga": KissMangaClient(),
-        "MangaHasu": MangaHasuClient()
+        "MangaHasu": MangaHasuClient(),
+        "MangaBuddy": MangaBuddyClient(),
     },
     "🇪🇸 ES": {
         "MangaDex": MangaDexClient(language=("es-la", "es")),
@@ -320,7 +321,7 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
             pagination.message = message
         except pyrogram.errors.BadRequest as e:
             file_name = f'pictures/{pagination.manga.unique()}.jpg'
-            await pagination.manga.client.get_url(pagination.manga.picture_url, cache=True, file_name=file_name)
+            await pagination.manga.client.get_cover(pagination.manga, cache=True, file_name=file_name)
             message = await bot.send_photo(callback.from_user.id,
                                            f'./cache/{pagination.manga.client.name}/{file_name}',
                                            f'{pagination.manga.name}\n'
