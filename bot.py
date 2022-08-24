@@ -198,8 +198,20 @@ async def on_subs(client: Client, message: Message):
 
     if not lines:
         return await message.reply("You have no subscriptions yet.")
-    body = "\n".join(lines)
-    await message.reply(f'Your subscriptions:\n\n{body}', disable_web_page_preview=True)
+
+    body = []
+    counter = 0
+    for line in lines:
+        if counter + len(line) > 4000:
+            text = "\n".join(body)
+            await message.reply(f'Your subscriptions:\n\n{text}', disable_web_page_preview=True)
+            body = []
+            counter = 0
+        body.append(line)
+        counter += len(line)
+
+    text = "\n".join(body)
+    await message.reply(f'Your subscriptions:\n\n{text}', disable_web_page_preview=True)
 
 
 @bot.on_message(filters=filters.regex(r'^/cancel ([^ ]+)$'))
