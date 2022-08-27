@@ -76,7 +76,7 @@ class MangaSeeClient(MangaClient):
 
     def updates_from_page(self, page: bytes):
 
-        chap_pat = re.compile('vm.LatestJSON = ([\s\S]*?);')
+        chap_pat = re.compile(r'vm.LatestJSON = (\[[\s\S]*?]);')
         chapters_str_list = chap_pat.findall(page.decode())
         if not chapters_str_list:
             return []
