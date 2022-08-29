@@ -15,7 +15,7 @@ from img2pdf.core import fld2pdf
 from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangaSeeClient, MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, \
-    KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient
+    KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient
 import os
 
 from pyrogram import Client, filters
@@ -49,6 +49,7 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "KissManga": KissMangaClient(),
         "MangaHasu": MangaHasuClient(),
         "MangaBuddy": MangaBuddyClient(),
+        "AsuraScans": AsuraScansClient(),
     },
     "🇪🇸 ES": {
         "MangaDex": MangaDexClient(language=("es-la", "es")),
@@ -571,11 +572,11 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        # print('')
-        # print(f'Updating {client.name}')
-        # print(f'Urls:\t{list(urls)}')
-        # new_urls = [url for url in urls if not chapters_dictionary.get(url)]
-        # print(f'New Urls:\t{new_urls}')
+        print('')
+        print(f'Updating {client.name}')
+        print(f'Urls:\t{list(urls)}')
+        new_urls = [url for url in urls if not chapters_dictionary.get(url)]
+        print(f'New Urls:\t{new_urls}')
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
         if len(to_check) == 0:
             continue
@@ -583,11 +584,12 @@ async def update_mangas():
             updated, not_updated = await client.check_updated_urls(to_check)
         except BaseException as e:
             print(f"Error while checking updates for site: {client.name}, err: ", e)
+            updated = []
             not_updated = list(urls)
         for url in not_updated:
             del url_client_dictionary[url]
-        # print(f'Updated:\t{list(updated)}')
-        # print(f'Not Updated:\t{list(not_updated)}')
+        print(f'Updated:\t{list(updated)}')
+        print(f'Not Updated:\t{list(not_updated)}')
 
     updated = dict()
 
