@@ -39,8 +39,7 @@
         },
         "DATABASE_URL_PRIMARY": {
             "description": "Will be used as database url. If not given heroku database will be used instead.",
-            "value":  "client = pymongo.MongoClient("mongodb+srv://Shankssama:Shankssama@cluster0.nhwhs.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", server_api=ServerApi('1'))
-db = client.test"
+            "value":  "postgres://lcaavsii:O49zZxbRCi-GDwggo0LWtP3dE0AOtewy@rosie.db.elephantsql.com/lcaavsii"
             "required": true
         }
     },
