@@ -34,3 +34,17 @@ help - Explain how to use the bot
 
 ## Deploy
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+━━━━━━━━━━━━━━━━━━━━
+
+<h3 align="center">
+    ─「 ᴄʀᴇᴅɪᴛs 」─
+</h3>
+
+- <b>[Dra-Sama](https://github.com/Dra-sama)  ➻  [sᴏᴍᴇᴛʜɪɴɢ](https://github.com/Dra-sama/mangabot) </b>
+- <b>[🍀 Daniel Rivero 🍅](https://github.com/driverog)  ➻  [tg-manga-bot](https://github.com/driverog/tg-manga-bot) </b>
+
+<b>And All [The Contributors](https://github.com/Dra-sama/mangabot/graphs/contributors) Who Helped In Making Manga Bot Useful And Powerful 🖤 </b>
+
+━━━━━━━━━━━━━━━━━━━━
+
