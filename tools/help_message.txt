@@ -11,3 +11,5 @@ Then you will have to choose the language of the manga. Depending on this langua
 /refresh - Reply to a manga chapter to refresh bot cache. If you want to refresh the images of a specific manga chapter, then this command will delete the cache with that information. This is useful if the website has changed the chapter images. You can request again the manga chapter to see the new images.
 /options - Disable/enable pdf, cbz and/or telegraph output format. This will determine what the bot will send you. 
 /help - Show this message.
+
+Updates Channel : @Wizard_bots
