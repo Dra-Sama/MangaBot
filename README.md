@@ -31,23 +31,12 @@
 ## Telegram Channel
 [Wizard Bots](https://t.me/Wizard_Bots)
 
-### $ [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
+### 1. [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
 Introduction To the Bot
 
+### 2. [***Env Variables***](https://github.com/Dra-Sama/mangabot/wiki/Env-Variables)
+Bot Variables
 
-## Env Variables
-
-`BOT_TOKEN` - Make a bot from [@BotFather](https://t.me/BotFather) and enter the token here.
-
-`API_ID` - Get this value from [my.telegram.org](https://my.telegram.org/apps)
-
-`API_HASH` - Get this value from [my.telegram.org](https://my.telegram.org/apps)
-
-`CACHE_CHANNEL` - Channel that will be used to only ask for a chapter once
-
-`CHANNEL` - [Optional] Create a new channel (public), copy username wihtout t.me/
-
-`DATABASE_URL_PRIMARY` - [Optional] Will be used as database url. If not given heroku database will be used instead. Get this value from [Elephantsql](https://elephantsql.com/)
 
 
 ## Deploy
