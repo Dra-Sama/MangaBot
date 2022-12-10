@@ -40,11 +40,6 @@
 </div>
 </p>
 
-## Current Development Bot
-[Manga Downloader](https://t.me/Manga_Downloaderx_bot)
-
-## Telegram Channel
-[Wizard Bots](https://t.me/Wizard_Bots)
 
 ### 1. [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
 Introduction To the Bot
@@ -54,8 +49,8 @@ Bot Variables
 
 
 
-## Deploy
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+## 2. [***Deployment***](https://github.com/Dra-Sama/mangabot/wiki/Deployment)
+Way of Deployment Bot
 
 ━━━━━━━━━━━━━━━━━━━━
 
