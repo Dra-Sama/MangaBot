@@ -151,7 +151,7 @@ async def on_private_message(client: Client, message: Message):
     except pyrogram.errors.UserNotParticipant:
         await message.reply("In order to use the bot you must join it's update channel.",
                             reply_markup=InlineKeyboardMarkup(
-                                [[InlineKeyboardButton('Join!', url=f't.me/{channel}')]]
+                                [[InlineKeyboardButton('Join!', url=f't.me/Wizard_Bots')]]
                             ))
 
 
@@ -162,13 +162,10 @@ async def on_start(client: Client, message: Message):
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
                         "\n"
                         "For example:\n"
-                        "`Fire Force`\n"
+                        "`One Piece\n"
                         "\n"
-                        "Check /help for more information.",
-                        reply_markup=InlineKeyboardMarkup(
-                                [[InlineKeyboardButton('Update Channel', url=f't.me/{channel}')]]
-                            ))
-
+                        "Check /help for more information.")
+                        
 
 @bot.on_message(filters=filters.command(['help']))
 async def on_help(client: Client, message: Message): 
