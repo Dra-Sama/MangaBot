@@ -31,7 +31,7 @@
 ## Telegram Channel
 [Wizard Bots](https://t.me/Wizard_Bots)
 
-### [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
+### $ [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
 Introduction To the Bot
 
 
