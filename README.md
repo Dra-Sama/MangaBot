@@ -1,7 +1,7 @@
 <p align="center">
     <a href="https://github.com/Dra-Sama/mangabot">
         <kbd>
-            <img width="250" src="https://telegra.ph/file/496644cbabaeb916e3616.png" alt="Manga Bot">
+            <img width="250" src="https://te.legra.ph/file/d55e3cdf8a5d3eb8318e7.jpg" alt="Manga Bot">
         </kbd>
     </a>
 </p>
