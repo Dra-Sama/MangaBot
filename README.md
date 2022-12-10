@@ -8,8 +8,23 @@
 
 <p align="center">
 <div align=center>
-## Manga Bot
+# Manga Bot
 Read manga from your favourites websites on telegram.
+
+ ## ***Manga Bot***
+
+<div align=center>
+
+ℹ️ A Powerful Pyrogram Based Telegram Manga Downloader.|
+---|
+    
+### ***Source Code*** : [Repo](Dra-Sama/mangabot)
+
+#### Note: `If you Like My Work, Give Stars ⭐ to the Repo and Follow Me on Github`
+    
+----
+</div>
+</p>
 
 ## Current Development Bot
 [Manga Downloader](https://t.me/Manga_Downloaderx_bot)
