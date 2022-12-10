@@ -47,9 +47,7 @@ Introduction To the Bot
 ### 2. [***Env Variables***](https://github.com/Dra-Sama/mangabot/wiki/Env-Variables)
 Bot Variables
 
-
-
-## 2. [***Deployment***](https://github.com/Dra-Sama/mangabot/wiki/Deployment)
+## 3. [***Deployment***](https://github.com/Dra-Sama/mangabot/wiki/Deployment)
 Way of Deployment Bot
 
 ━━━━━━━━━━━━━━━━━━━━
