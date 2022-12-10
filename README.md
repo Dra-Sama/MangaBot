@@ -8,8 +8,7 @@
 
 <p align="center">
 <div align=center>
-# Manga Bot
-Read manga from your favourites websites on telegram.
+
 
  ## ***Manga Bot***
 
