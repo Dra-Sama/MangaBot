@@ -1,5 +1,5 @@
 {
-    "name": "TG-MANGA-BOT",
+    "name": "MANGABOT",
     "description": "Read manga from your favourites websites on telegram.",
     "keywords": [
         "manga",
@@ -9,7 +9,7 @@
         "bot"
     ],
     "stack": "container",
-    "repository": "https://github.com/driverog/tg-manga-bot",
+    "repository": "Dra-Sama/mangabot",
     "success_url": "/welcome",
     "env": {
         "API_ID": {
