@@ -1,3 +1,13 @@
+<p align="center">
+    <a href="https://github.com/Dra-Sama/mangabot">
+        <kbd>
+            <img width="250" src="https://telegra.ph/file/496644cbabaeb916e3616.png" alt="Manga Bot">
+        </kbd>
+    </a>
+</p>
+
+<p align="center">
+<div align=center>
 ## Manga Bot
 Read manga from your favourites websites on telegram.
 
