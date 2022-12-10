@@ -9,7 +9,7 @@
         "bot"
     ],
     "stack": "container",
-    "repository": "Dra-Sama/mangabot",
+    "repository": "https://github.com/Dra-Sama/mangabot",
     "success_url": "/welcome",
     "env": {
         "API_ID": {
