@@ -31,14 +31,8 @@
 ## Telegram Channel
 [Wizard Bots](https://t.me/Wizard_Bots)
 
-## Commands
-```
-start - Usage Info
-subs - Your suscriptions
-refresh - Reply to a PDF to refresh bot cache
-options - Disable/enable pdf, cbz and/or telegraph output format
-help - Explain how to use the bot
-```
+### [***Getting Started***](https://github.com/Dra-Sama/mangabot/wiki/Getting-Started)
+Introduction To the Bot
 
 
 ## Env Variables
