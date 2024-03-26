@@ -1,0 +1,35 @@
+name: DevDeploy
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  DevDeploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up ssh-agent
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        passphrase: ${{ secrets.PASSPHRASE }}
+        script_stop: true
+        script: |
+          cd mangabot/mangabotdev
+          git pull origin master
+          docker container rm -f mangabotdev 2> /dev/null || true
+          docker build . -t mangabotdev
+          docker run --name mangabotdev --restart=always -dti \
+          --env BOT_TOKEN=${{ secrets.DEV_BOT_TOKEN }} \
+          --env API_ID=${{ secrets.API_ID }} \
+          --env API_HASH=${{ secrets.API_HASH }} \
+          --env DATABASE_URL_PRIMARY=${{ secrets.DEV_DATABASE_URI }} \
+          --env LOG_LEVEL=${{ secrets.DEV_LOG_LEVEL }} \
+          mangabotdev 
