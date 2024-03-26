@@ -1,0 +1,39 @@
+name: ProdDeploy
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  push:
+    branches: [ "prod" ]
+  workflow_dispatch:
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  ProdDeploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up ssh-agent
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        passphrase: ${{ secrets.PASSPHRASE }}
+        script_stop: true
+        script: |
+          cd mangabot/mangabot-prod
+          git pull origin prod
+          docker container rm -f mangabot-prod 2> /dev/null || true
+          docker build . -t mangabot-prod
+          docker run --name manga-bot-prod --restart=always -dti \
+          --env BOT_TOKEN=${{ secrets.PROD_BOT_TOKEN }} \
+          --env API_ID=${{ secrets.API_ID }} \
+          --env API_HASH=${{ secrets.API_HASH }} \
+          --env CHANNEL=${{ secrets.PROD_CHANNEL }} \
+          --env CACHE_CHANNEL=${{ secrets.CACHE_CHANNEL }} \
+          --env DATABASE_URL_PRIMARY=${{ secrets.PROD_DATABASE_URI }} \
+          --env LOG_LEVEL=${{ secrets.PROD_LOG_LEVEL }} \
+          mangabot-prod 
