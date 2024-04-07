@@ -1,5 +1,6 @@
 import asyncio
 from typing import Callable, Awaitable, Any
+from loguru import logger
 
 import pyrogram.errors
 
@@ -11,11 +12,12 @@ def retry_on_flood(function: Callable[[Any], Awaitable]):
             try:
                 return await function(*args, **kwargs)
             except pyrogram.errors.FloodWait as err:
-                print(f'FloodWait, waiting {err.x} seconds')
+                logger.warning(f'FloodWait, waiting {err.x} seconds: {err.MESSAGE}')
                 await asyncio.sleep(err.x)
                 continue
             except pyrogram.errors.RPCError as err:
                 if err.MESSAGE == 'FloodWait':
+                    logger.warning(f'FloodWait, waiting {err.x} seconds: {err.MESSAGE}')
                     await asyncio.sleep(err.x)
                     continue
                 else:
