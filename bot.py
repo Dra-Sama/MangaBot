@@ -10,8 +10,9 @@ import json
 import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaDocument
 
+from config import env_vars, dbname
 from img2cbz.core import fld2cbz
-from img2pdf.core import fld2pdf
+from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, \
@@ -20,10 +21,12 @@ import os
 
 from pyrogram import Client, filters
 from typing import Dict, Tuple, List, TypedDict
+from loguru import logger
 
 from models.db import DB, ChapterFile, Subscription, LastChapter, MangaName, MangaOutput
 from pagination import Pagination
 from plugins.client import clean
+from tools.aqueue import AQueue
 from tools.flood import retry_on_flood
 
 mangas: Dict[str, MangaCard] = dict()
@@ -57,11 +60,16 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "TMO": TMOClient(),
         "Mangatigre": MangatigreClient(),
         "NineManga": NineMangaClient(language='es'),
+        "MangasIn": MangasInClient(),
     }
 }
 
+cache_dir = "cache"
+if os.path.exists(cache_dir):
+    shutil.rmtree(cache_dir)
 with open("tools/help_message.txt", "r") as f:
     help_msg = f.read()
+
 
 class OutputOptions(enum.IntEnum):
     PDF = 1
@@ -78,7 +86,7 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
-disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus"]
+disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus", "[🇪🇸 ES] MangasIn"]
 
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
@@ -105,19 +113,14 @@ def get_buttons_for_options(user_options: int):
     return InlineKeyboardMarkup(buttons)
 
 
-env_file = "env.json"
-if os.path.exists(env_file):
-    with open(env_file) as f:
-        env_vars = json.loads(f.read())
-else:
-    env_vars = dict(os.environ)
-
 bot = Client('bot',
              api_id=int(env_vars.get('API_ID')),
              api_hash=env_vars.get('API_HASH'),
-             bot_token=env_vars.get('BOT_TOKEN'))
+             bot_token=env_vars.get('BOT_TOKEN'),
+             max_concurrent_transmissions=3)
 
-dbname = env_vars.get('DATABASE_URL_PRIMARY') or env_vars.get('DATABASE_URL')
+pdf_queue = AQueue()
+
 if dbname:
     DB(dbname)
 else:
@@ -142,34 +145,47 @@ async def on_private_message(client: Client, message: Message):
             users_in_channel[message.from_user.id] = dt.datetime.now()
             return message.continue_propagation()
     except pyrogram.errors.UsernameNotOccupied:
-        print("Channel does not exist, therefore bot will continue to operate normally")
+        logger.debug("Channel does not exist, therefore bot will continue to operate normally")
         return message.continue_propagation()
     except pyrogram.errors.ChatAdminRequired:
-        print("Bot is not admin of the channel, therefore bot will continue to operate normally")
+        logger.debug("Bot is not admin of the channel, therefore bot will continue to operate normally")
         return message.continue_propagation()
     except pyrogram.errors.UserNotParticipant:
         await message.reply("In order to use the bot you must join it's update channel.",
                             reply_markup=InlineKeyboardMarkup(
-                                [[InlineKeyboardButton('Join!', url=f't.me/Wizard_Bots')]]
+                                [[InlineKeyboardButton('Join!', url=f't.me/{channel}')]]
                             ))
+    except pyrogram.ContinuePropagation:
+        raise
+    except pyrogram.StopPropagation:
+        raise
+    except BaseException as e:
+        logger.exception(e)
 
 
 @bot.on_message(filters=filters.command(['start']))
 async def on_start(client: Client, message: Message):
+    logger.info(f"User {message.from_user.id} started the bot")
     await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
                         "\n"
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
                         "\n"
                         "For example:\n"
-                        "`One Piece\n"
+                        "`One Piece`\n"
                         "\n"
                         "Check /help for more information.")
-                        
+    logger.info(f"User {message.from_user.id} finished the start command")
+
 
 @bot.on_message(filters=filters.command(['help']))
-async def on_help(client: Client, message: Message): 
+async def on_help(client: Client, message: Message):
     await message.reply(help_msg)
-    
+
+
+@bot.on_message(filters=filters.command(['queue']))
+async def on_help(client: Client, message: Message):
+    await message.reply(f'Queue size: {pdf_queue.qsize()}')
+
 
 @bot.on_message(filters=filters.command(['refresh']))
 async def on_refresh(client: Client, message: Message):
@@ -197,29 +213,25 @@ async def on_refresh(client: Client, message: Message):
 @bot.on_message(filters=filters.command(['subs']))
 async def on_subs(client: Client, message: Message):
     db = DB()
-    subs = await db.get_subs(str(message.from_user.id))
+
+    filter_ = message.text.split(maxsplit=1)[1] if message.text.split(maxsplit=1)[1:] else ''
+    filter_list = [filter_.strip() for filter_ in filter_.split(' ') if filter_.strip()]
+
+    subs = await db.get_subs(str(message.from_user.id), filter_list)
+
     lines = []
-    for sub in subs:
+    for sub in subs[:10]:
         lines.append(f'<a href="{sub.url}">{sub.name}</a>')
         lines.append(f'`/cancel {sub.url}`')
         lines.append('')
 
     if not lines:
+        if filter_:
+            return await message.reply("You have no subscriptions with that filter.")
         return await message.reply("You have no subscriptions yet.")
 
-    body = []
-    counter = 0
-    for line in lines:
-        if counter + len(line) > 4000:
-            text = "\n".join(body)
-            await message.reply(f'Your subscriptions:\n\n{text}', disable_web_page_preview=True)
-            body = []
-            counter = 0
-        body.append(line)
-        counter += len(line)
-
-    text = "\n".join(body)
-    await message.reply(f'Your subscriptions:\n\n{text}', disable_web_page_preview=True)
+    text = "\n".join(lines)
+    await message.reply(f'Your subscriptions:\n\n{text}\nTo see more subscriptions use `/subs filter`', disable_web_page_preview=True)
 
 
 @bot.on_message(filters=filters.regex(r'^/cancel ([^ ]+)$'))
@@ -359,96 +371,112 @@ async def manga_click(client, callback: CallbackQuery, pagination: Pagination = 
     else:
         await bot.edit_message_reply_markup(
             callback.from_user.id,
-            pagination.message.message_id,
+            pagination.message.id,
             reply_markup=buttons
         )
 
+users_lock = asyncio.Lock()
+
+
+async def get_user_lock(chat_id: int):
+    async with users_lock:
+        lock = locks.get(chat_id)
+        if not lock:
+            locks[chat_id] = asyncio.Lock()
+        return locks[chat_id]
+
 
 async def chapter_click(client, data, chat_id):
-    lock = locks.get(chat_id)
-    if not lock:
-        locks[chat_id] = asyncio.Lock()
+    await pdf_queue.put(chapters[data], int(chat_id))
+    logger.debug(f"Put chapter {chapters[data].name} to queue for user {chat_id} - queue size: {pdf_queue.qsize()}")
 
-    async with locks[chat_id]:
-        cache_channel = env_vars.get("CACHE_CHANNEL")
-        if not cache_channel:
-            return await bot.send_message(chat_id, "Bot cache channel is not configured correctly.")
 
-        # Try convert to int cache_channel, because it can be id or username
-        try:
-            cache_channel = int(cache_channel)
-        except ValueError:
-            pass
+async def send_manga_chapter(client: Client, chapter, chat_id):
+    db = DB()
 
-        chapter = chapters[data]
+    chapter_file = await db.get(ChapterFile, chapter.url)
+    options = await db.get(MangaOutput, str(chat_id))
+    options = options.output if options else (1 << 30) - 1
 
-        db = DB()
+    error_caption = '\n'.join([
+        f'{chapter.manga.name} - {chapter.name}',
+        f'{chapter.get_url()}'
+    ])
 
-        chapterFile = await db.get(ChapterFile, chapter.url)
-        options = await db.get(MangaOutput, str(chat_id))
-        options = options.output if options else (1 << 30) - 1
+    success_caption = f'{chapter.manga.name} - {chapter.name}\n'
 
-        caption = '\n'.join([
-            f'{chapter.manga.name} - {chapter.name}',
-            f'{chapter.get_url()}'
-        ])
+    download = not chapter_file
+    download = download or options & OutputOptions.PDF and not chapter_file.file_id
+    download = download or options & OutputOptions.CBZ and not chapter_file.cbz_id
+    download = download or options & OutputOptions.Telegraph and not chapter_file.telegraph_url
+    download = download and options & ((1 << len(OutputOptions)) - 1) != 0
 
-        download = not chapterFile
-        download = download or options & OutputOptions.PDF and not chapterFile.file_id
-        download = download or options & OutputOptions.CBZ and not chapterFile.cbz_id
-        download = download or options & OutputOptions.Telegraph and not chapterFile.telegraph_url
-        download = download and options & ((1 << len(OutputOptions)) - 1) != 0
+    if download:
+        pictures_folder = await chapter.client.download_pictures(chapter)
+        if not chapter.pictures:
+            return await client.send_message(chat_id,
+                                          f'There was an error parsing this chapter or chapter is missing' +
+                                          f', please check the chapter at the web\n\n{error_caption}')
+        thumb_path = fld2thumb(pictures_folder)
 
-        if download:
-            pictures_folder = await chapter.client.download_pictures(chapter)
-            if not chapter.pictures:
-                return await bot.send_message(chat_id, f'There was an error parsing this chapter or chapter is missing' +
-                                              f', please check the chapter at the web\n\n{caption}')
-            ch_name = clean(f'{clean(chapter.manga.name, 25)} - {chapter.name}', 45)
-            pdf, thumb_path = fld2pdf(pictures_folder, ch_name)
-            cbz = fld2cbz(pictures_folder, ch_name)
-            telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
+    chapter_file = chapter_file or ChapterFile(url=chapter.url)
 
-            messages: List[Message] = await retry_on_flood(bot.send_media_group)(cache_channel, [
-                InputMediaDocument(pdf, thumb=thumb_path),
-                InputMediaDocument(cbz, thumb=thumb_path, caption=f'{telegraph_url}')
-            ])
+    if download and not chapter_file.telegraph_url:
+        chapter_file.telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
 
-            pdf_m, cbz_m = messages
+    if options & OutputOptions.Telegraph:
+        success_caption += f'[Read on telegraph]({chapter_file.telegraph_url})\n'
+    success_caption += f'[Read on website]({chapter.get_url()})'
 
-            if not chapterFile:
-                await db.add(ChapterFile(url=chapter.url, file_id=pdf_m.document.file_id,
-                                         file_unique_id=pdf_m.document.file_unique_id, cbz_id=cbz_m.document.file_id,
-                                         cbz_unique_id=cbz_m.document.file_unique_id, telegraph_url=telegraph_url))
-            else:
-                chapterFile.file_id, chapterFile.file_unique_id, chapterFile.cbz_id, \
-                chapterFile.cbz_unique_id, chapterFile.telegraph_url = \
-                    pdf_m.document.file_id, pdf_m.document.file_unique_id, cbz_m.document.file_id, \
-                    cbz_m.document.file_unique_id, telegraph_url
-                await db.add(chapterFile)
+    ch_name = clean(f'{clean(chapter.manga.name, 25)} - {chapter.name}', 45)
 
-            shutil.rmtree(pictures_folder)
+    media_docs = []
 
-        chapterFile = await db.get(ChapterFile, chapter.url)
-
-        caption = f'{chapter.manga.name} - {chapter.name}\n'
-        if options & OutputOptions.Telegraph:
-            caption += f'[Read on telegraph]({chapterFile.telegraph_url})\n'
-        caption += f'[Read on website]({chapter.get_url()})'
-        media_docs = []
-        if options & OutputOptions.PDF:
-            media_docs.append(InputMediaDocument(chapterFile.file_id))
-        if options & OutputOptions.CBZ:
-            media_docs.append(InputMediaDocument(chapterFile.cbz_id))
-
-        if len(media_docs) == 0:
-            await retry_on_flood(bot.send_message)(chat_id, caption)
-        elif len(media_docs) == 1:
-            await retry_on_flood(bot.send_document)(chat_id, media_docs[0].media, caption=caption)
+    if options & OutputOptions.PDF:
+        if chapter_file.file_id:
+            media_docs.append(InputMediaDocument(chapter_file.file_id))
         else:
-            media_docs[-1].caption = caption
-            await retry_on_flood(bot.send_media_group)(chat_id, media_docs)
-        await asyncio.sleep(1)
+            try:
+                pdf = await asyncio.get_running_loop().run_in_executor(None, fld2pdf, pictures_folder, ch_name)
+            except Exception as e:
+                logger.exception(f'Error creating pdf for {chapter.name} - {chapter.manga.name}\n{e}')
+                return await client.send_message(chat_id, f'There was an error making the pdf for this chapter. '
+                                                       f'Forward this message to the bot group to report the '
+                                                       f'error.\n\n{error_caption}')
+            media_docs.append(InputMediaDocument(pdf, thumb=thumb_path))
+
+    if options & OutputOptions.CBZ:
+        if chapter_file.cbz_id:
+            media_docs.append(InputMediaDocument(chapter_file.cbz_id))
+        else:
+            try:
+                cbz = await asyncio.get_running_loop().run_in_executor(None, fld2cbz, pictures_folder, ch_name)
+            except Exception as e:
+                logger.exception(f'Error creating cbz for {chapter.name} - {chapter.manga.name}\n{e}')
+                return await client.send_message(chat_id, f'There was an error making the cbz for this chapter. '
+                                                       f'Forward this message to the bot group to report the '
+                                                       f'error.\n\n{error_caption}')
+            media_docs.append(InputMediaDocument(cbz, thumb=thumb_path))
+
+    if len(media_docs) == 0:
+        messages: list[Message] = await retry_on_flood(client.send_message)(chat_id, success_caption)
+    else:
+        media_docs[-1].caption = success_caption
+        messages: list[Message] = await retry_on_flood(client.send_media_group)(chat_id, media_docs)
+
+    # Save file ids
+    if download and media_docs:
+        for message in [x for x in messages if x.document]:
+            if message.document.file_name.endswith('.pdf'):
+                chapter_file.file_id = message.document.file_id
+                chapter_file.file_unique_id = message.document.file_unique_id
+            elif message.document.file_name.endswith('.cbz'):
+                chapter_file.cbz_id = message.document.file_id
+                chapter_file.cbz_unique_id = message.document.file_unique_id
+
+    if download:
+        shutil.rmtree(pictures_folder, ignore_errors=True)
+        await db.add(chapter_file)
 
 
 async def pagination_click(client: Client, callback: CallbackQuery):
@@ -464,8 +492,7 @@ async def full_page_click(client: Client, callback: CallbackQuery):
         try:
             await chapter_click(client, chapter_data, callback.from_user.id)
         except Exception as e:
-            print(e)
-        await asyncio.sleep(0.5)
+            logger.exception(e)
 
 
 async def favourite_click(client: Client, callback: CallbackQuery):
@@ -488,7 +515,7 @@ async def favourite_click(client: Client, callback: CallbackQuery):
         "Unsubscribe" if fav else "Subscribe",
         f"{'unfav' if fav else 'fav'}_{data}"
     )]
-    await bot.edit_message_reply_markup(callback.from_user.id, callback.message.message_id,
+    await bot.edit_message_reply_markup(callback.from_user.id, callback.message.id,
                                         InlineKeyboardMarkup(keyboard))
     db_manga = await db.get(MangaName, manga.url)
     if not db_manga:
@@ -508,7 +535,7 @@ def is_pagination_data(callback: CallbackQuery):
         return False
     if pagination.message.chat.id != callback.from_user.id:
         return False
-    if pagination.message.message_id != callback.message.message_id:
+    if pagination.message.id != callback.message.id:
         return False
     return True
 
@@ -537,7 +564,7 @@ async def on_callback_query(client, callback: CallbackQuery):
     try:
         await callback.answer()
     except BaseException as e:
-        print(e)
+        logger.warning(e)
 
 
 async def remove_subscriptions(sub: str):
@@ -547,7 +574,7 @@ async def remove_subscriptions(sub: str):
 
 
 async def update_mangas():
-    print("Updating mangas")
+    logger.debug("Updating mangas")
     db = DB()
     subscriptions = await db.get_all(Subscription)
     last_chapters = await db.get_all(LastChapter)
@@ -579,24 +606,23 @@ async def update_mangas():
                 client_url_dictionary[client].add(url)
 
     for client, urls in client_url_dictionary.items():
-        print('')
-        print(f'Updating {client.name}')
-        print(f'Urls:\t{list(urls)}')
+        logger.debug(f'Updating {client.name}')
+        logger.debug(f'Urls:\t{list(urls)}')
         new_urls = [url for url in urls if not chapters_dictionary.get(url)]
-        print(f'New Urls:\t{new_urls}')
+        logger.debug(f'New Urls:\t{new_urls}')
         to_check = [chapters_dictionary[url] for url in urls if chapters_dictionary.get(url)]
         if len(to_check) == 0:
             continue
         try:
             updated, not_updated = await client.check_updated_urls(to_check)
         except BaseException as e:
-            print(f"Error while checking updates for site: {client.name}, err: ", e)
+            logger.exception(f"Error while checking updates for site: {client.name}, err: {e}")
             updated = []
             not_updated = list(urls)
         for url in not_updated:
             del url_client_dictionary[url]
-        print(f'Updated:\t{list(updated)}')
-        print(f'Not Updated:\t{list(not_updated)}')
+        logger.debug(f'Updated:\t{list(updated)}')
+        logger.debug(f'Not Updated:\t{list(not_updated)}')
 
     updated = dict()
 
@@ -630,25 +656,24 @@ async def update_mangas():
                             chapters[chapter.unique()] = chapter
                 await asyncio.sleep(1)
         except BaseException as e:
-            print(f'An exception occurred getting new chapters for url {url}: {e}')
+            logger.exception(f'An exception occurred getting new chapters for url {url}: {e}')
 
     blocked = set()
     for url, chapter_list in updated.items():
         for chapter in chapter_list:
-            print(f'{chapter.manga.name} - {chapter.name}')
+            logger.debug(f'Updating {chapter.manga.name} - {chapter.name}')
             for sub in subs_dictionary[url]:
                 if sub in blocked:
                     continue
                 try:
-                    await chapter_click(bot, chapter.unique(), int(sub))
+                    await pdf_queue.put(chapter, int(sub))
+                    logger.debug(f"Put chapter {chapter} to queue for user {sub} - queue size: {pdf_queue.qsize()}")
                 except pyrogram.errors.UserIsBlocked:
-                    print(f'User {sub} blocked the bot')
+                    logger.info(f'User {sub} blocked the bot')
                     await remove_subscriptions(sub)
                     blocked.add(sub)
                 except BaseException as e:
-                    print(f'An exception occurred sending new chapter: {e}')
-                await asyncio.sleep(0.5)
-            await asyncio.sleep(1)
+                    logger.exception(f'An exception occurred sending new chapter: {e}')
 
 
 async def manga_updater():
@@ -660,8 +685,26 @@ async def manga_updater():
             await update_mangas()
             elapsed = dt.datetime.now() - start
             wait_time = max((dt.timedelta(seconds=wait_time) - elapsed).total_seconds(), 0)
-            print(f'Time elapsed updating mangas: {elapsed}, waiting for {wait_time}')
+            logger.debug(f'Time elapsed updating mangas: {elapsed}, waiting for {wait_time}')
         except BaseException as e:
-            print(f'An exception occurred during chapters update: {e}')
+            logger.exception(f'An exception occurred during chapters update: {e}')
         if wait_time:
             await asyncio.sleep(wait_time)
+
+
+async def chapter_creation(worker_id: int = 0):
+    """
+    This function will always run in the background
+    It will be listening for a channel which notifies whether there is a new request in the request queue
+    :return:
+    """
+    logger.debug(f"Worker {worker_id}: Starting worker")
+    while True:
+        chapter, chat_id = await pdf_queue.get(worker_id)
+        logger.debug(f"Worker {worker_id}: Got chapter '{chapter.name}' from queue for user '{chat_id}'")
+        try:
+            await send_manga_chapter(bot, chapter, chat_id)
+        except:
+            logger.exception(f"Error sending chapter {chapter.name} to user {chat_id}")
+        finally:
+            pdf_queue.release(chat_id)
