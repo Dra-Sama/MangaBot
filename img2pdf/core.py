@@ -7,21 +7,14 @@ import re
 
 from PIL import Image
 
-from img2pdf.img_size import get_image_size
-
 
 def fld2pdf(folder: Path, out: str):
     
     files = [file for file in folder.glob(r'*') if re.match(r'.*\.(jpg|png|jpeg|webp)', file.name)]
     files.sort(key=lambda x: x.name)
-    thumb_path = make_thumb(folder, files)
     pdf = folder / f'{out}.pdf'
-    try:
-        img2pdf(files, pdf)
-    except BaseException as e:
-        print(f'Image to pdf failed with exception: {e}')
-        old_img2pdf(files, pdf)
-    return pdf, thumb_path
+    img2pdf(files, pdf)
+    return pdf
 
 
 def new_img(path: Path) -> Image.Image:
@@ -49,6 +42,18 @@ def pil_image(path: Path) -> (BytesIO, int, int):
     return membuf, width, height
 
 
+def unicode_to_latin1(s):
+    # Substitute the ' character
+    s = s.replace('\u2019', '\x92')
+    # Substitute the " character
+    s = s.replace('\u201d', '\x94')
+    # Substitute the - character
+    s = s.replace('\u2013', '\x96')
+    # Remove all other non-latin1 characters
+    s = s.encode('latin1', 'replace').decode('latin1')
+    return s
+
+
 def img2pdf(files: List[Path], out: Path):
     pdf = FPDF('P', 'pt')
     for imageFile in files:
@@ -60,9 +65,15 @@ def img2pdf(files: List[Path], out: Path):
 
         img_bytes.close()
 
-    pdf.set_title(out.stem)
+    pdf.set_title(unicode_to_latin1(out.stem))
     pdf.output(out, "F")
-    pdf.close()
+
+
+def fld2thumb(folder: Path):
+    files = [file for file in folder.glob(r'*') if re.match(r'.*\.(jpg|png|jpeg|webp)', file.name)]
+    files.sort(key=lambda x: x.name)
+    thumb_path = make_thumb(folder, files)
+    return thumb_path
 
 
 def make_thumb(folder, files):
