@@ -1,7 +1,8 @@
 import asyncio as aio
 import os
 
-from bot import bot, manga_updater
+from logger import logger
+from bot import bot, manga_updater, chapter_creation
 from models import DB
 
 
