@@ -1,5 +1,5 @@
 import os
-from typing import Type, List, TypeVar
+from typing import Type, List, TypeVar, Optional
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel, Field, Session, select, delete
@@ -12,11 +12,11 @@ T = TypeVar("T")
 
 class ChapterFile(SQLModel, table=True):
     url: str = Field(primary_key=True)
-    file_id: str
-    file_unique_id: str
-    cbz_id: str
-    cbz_unique_id: str
-    telegraph_url: str
+    file_id: Optional[str]
+    file_unique_id: Optional[str]
+    cbz_id: Optional[str]
+    cbz_unique_id: Optional[str]
+    telegraph_url: Optional[str]
 
 
 class MangaOutput(SQLModel, table=True):
@@ -40,15 +40,17 @@ class MangaName(SQLModel, table=True):
 
 
 class DB(metaclass=LanguageSingleton):
-    
-    def __init__(self, dbname: str = 'sqlite:///test.db'):
+
+    def __init__(self, dbname: str = 'sqlite+aiosqlite:///test.db'):
         if dbname.startswith('postgres://'):
             dbname = dbname.replace('postgres://', 'postgresql+asyncpg://', 1)
-        if dbname.startswith('sqlite'):
+        elif dbname.startswith('postgresql://'):
+            dbname = dbname.replace('postgresql://', 'postgresql+asyncpg://', 1)
+        elif dbname.startswith('sqlite'):
             dbname = dbname.replace('sqlite', 'sqlite+aiosqlite', 1)
-    
+
         self.engine = create_async_engine(dbname)
-        
+
     async def connect(self):
         async with self.engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all, checkfirst=True)
@@ -79,9 +81,15 @@ class DB(metaclass=LanguageSingleton):
                                                   (ChapterFile.telegraph_url == id))
             return (await session.exec(statement=statement)).first()
 
-    async def get_subs(self, user_id: str) -> List[MangaName]:
+    async def get_subs(self, user_id: str, filters=None) -> List[MangaName]:
         async with AsyncSession(self.engine) as session:
-            statement = select(MangaName).where(Subscription.user_id == user_id).where(Subscription.url == MangaName.url)
+            statement = (
+                select(MangaName)
+                .join(Subscription, Subscription.url == MangaName.url)
+                .where(Subscription.user_id == user_id)
+            )
+            for filter_ in filters or []:
+                statement = statement.where(MangaName.name.ilike(f'%{filter_}%') | MangaName.url.ilike(f'%{filter_}%'))
             return (await session.exec(statement=statement)).all()
 
     async def erase_subs(self, user_id: str):
@@ -89,4 +97,3 @@ class DB(metaclass=LanguageSingleton):
             async with session.begin():
                 statement = delete(Subscription).where(Subscription.user_id == user_id)
                 await session.exec(statement=statement)
-
