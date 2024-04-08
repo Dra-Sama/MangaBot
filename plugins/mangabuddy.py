@@ -22,7 +22,7 @@ class MangaBuddyClient(MangaClient):
     search_url = urljoin(base_url.geturl(), "search")
     search_param = 'q'
     home_page = urljoin(base_url.geturl(), "home-page")
-    img_server = "https://s1.mbcdnv1.xyz/file/img-mbuddy/manga/"
+    img_server = "https://s1.mbbcdnv1.xyz/file/img-mbuddy/manga/"
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -89,7 +89,7 @@ class MangaBuddyClient(MangaClient):
 
         imgs = re.findall(regex, content)[0].decode().split(',')
 
-        images_url = [self.img_server + img for img in imgs]
+        images_url = [img for img in imgs]
 
         return images_url
 
