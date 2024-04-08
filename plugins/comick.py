@@ -8,7 +8,7 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 class ComickClient(MangaClient):
 
-    base_url = urlparse("http://kissmanga.nl/")
+    base_url = urlparse("https://comick.io/")
     search_url = urljoin(base_url.geturl(), "search")
     search_param = 'q'
 
