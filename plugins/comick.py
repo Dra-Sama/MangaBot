@@ -1,5 +1,5 @@
 from typing import List, AsyncIterable
-from urllib.parse import urlparse, urljoin, quote, quote_plus
+from urllib.parse import urlparse, urljoin, quote
 
 from bs4 import BeautifulSoup
 
@@ -9,26 +9,21 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 class ComickClient(MangaClient):
 
     base_url = urlparse("https://comick.io/")
-    search_url = base_url.geturl()
-    search_param = 's'
-    updates_url = base_url.geturl()
+    search_url = urljoin(base_url.geturl(), "search/story/")
+    updates_url = urljoin(base_url.geturl(), "genre-all-update-latest")
+    chapter_url = "https://comick.io/"
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-       def __init__(self, *args, name="Comick", language=None, **kwargs):
-        if language is None:
-            language = 'en'
-        else:
-            self.base_url = urlparse(f"https://{language}.comick.io/")
-        self.search_url = urljoin(self.base_url.geturl(), 'search/')
-        self.updates_url = self.base_url.geturl()
+    def __init__(self, *args, name="Comick", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
-        container = bs.find("div", {"class": "listupd"})
+    def mangas_from_page(self, page: bytes):
+        bs = BeautifulSoup(page, "html.parser")
 
-        cards = container.find_all("div", {"class": "bs"})
+        cards = bs.find_all("div", {"class": "search-story-item"})
 
         mangas = [card.findNext('a') for card in cards]
         names = [manga.get('title') for manga in mangas]
@@ -42,31 +37,29 @@ class ComickClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"id": "chapterlist"})
-
-        lis = container.find_all("li")
+        lis = bs.find_all("li", {"class": "a-h"})
 
         items = [li.findNext('a') for li in lis]
 
         links = [item.get("href") for item in items]
-        texts = [item.findChild('span', {'class': 'chapternum'}).string.strip() for item in items]
+        texts = [item.string for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
     def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
 
-        manga_items = bs.find_all("div", {"class": "utao"})
+        manga_items = bs.find_all("div", {"class": "content-genres-item"})
 
         urls = dict()
 
         for manga_item in manga_items:
-            manga_url = manga_item.findNext("a").get("href")
+            manga_url = manga_item.findNext("a", {"class": "genres-item-img"}).get("href")
 
             if manga_url in urls:
                 continue
 
-            chapter_url = manga_item.findNext("ul").findNext("a").get("href")
+            chapter_url = manga_item.findNext('a', {'class': 'genres-item-chap'}).get('href')
 
             urls[manga_url] = chapter_url
 
@@ -75,21 +68,21 @@ class ComickClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        container = bs.find("div", {"id": "readerarea"})
+        ul = bs.find("div", {"class": "container-chapter-reader"})
 
-        images = map(lambda x: x.findNext('img'), container.findAll('p'))
+        images = ul.find_all('img')
 
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        query = quote_plus(query)
+        query = quote(query.replace(' ', '_').lower())
 
-        request_url = self.search_url
+        request_url = f'{self.search_url}'
 
         if query:
-            request_url += f'?{self.search_param}={query}'
+            request_url += f'{query}'
 
         content = await self.get_url(request_url)
 
@@ -113,8 +106,14 @@ class ComickClient(MangaClient):
         for chapter in self.chapters_from_page(content, manga_card):
             yield chapter
 
+    def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
+        headers = dict(self.headers)
+        headers['Referer'] = self.chapter_url
+
+        return self.get_url(url, headers=headers, *args, **kwargs)
+
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl())
+        return url.startswith(self.base_url.geturl()) or url.startswith(self.chapter_url)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
