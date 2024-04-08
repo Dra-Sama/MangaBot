@@ -17,7 +17,7 @@ class ComickClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-       def __init__(self, *args, name="NineManga", language=None, **kwargs):
+       def __init__(self, *args, name="Comick", language=None, **kwargs):
         if language is None:
             language = 'en'
         else:
