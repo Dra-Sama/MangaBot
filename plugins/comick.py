@@ -13,6 +13,7 @@ class ComickClient(MangaClient):
     search_param = 'q'
     updates_url = base_url.geturl()
     home_page = urljoin(base_url.geturl(), "home-page")
+    chap_url = 'https://comick.io/comic/'
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
