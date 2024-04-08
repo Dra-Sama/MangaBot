@@ -8,10 +8,10 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 class ComickClient(MangaClient):
 
-    base_url = urlparse("https://comick.io/")
-    search_url = urljoin(base_url.geturl(), "search?q=")
-    updates_url = urljoin(base_url.geturl(), "genre-all-update-latest")
-    chapter_url = "https://comick.io/"
+    base_url = urlparse("http://kissmanga.nl/")
+    search_url = urljoin(base_url.geturl(), "search")
+    search_param = 'q'
+
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
