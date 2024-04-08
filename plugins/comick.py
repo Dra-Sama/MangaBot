@@ -11,7 +11,7 @@ class ComickClient(MangaClient):
     base_url = urlparse("https://comick.io/")
     search_url = urljoin(base_url.geturl(), "search")
     search_param = 'q'
-
+    updates_url = base_url.geturl()
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
