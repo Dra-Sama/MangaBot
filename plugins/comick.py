@@ -9,7 +9,7 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 class ComickClient(MangaClient):
 
     base_url = urlparse("https://comick.io/")
-    search_url = urljoin(base_url.geturl(), "search/story/")
+    search_url = urljoin(base_url.geturl(), "search?q=")
     updates_url = urljoin(base_url.geturl(), "genre-all-update-latest")
     chapter_url = "https://comick.io/"
 
