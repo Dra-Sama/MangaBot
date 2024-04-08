@@ -17,11 +17,14 @@ class ComickClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="Comick", **kwargs):
+       def __init__(self, *args, name="NineManga", language=None, **kwargs):
+        if language is None:
+            language = 'en'
+        else:
+            self.base_url = urlparse(f"https://{language}.comick.io/")
+        self.search_url = urljoin(self.base_url.geturl(), 'search/')
+        self.updates_url = self.base_url.geturl()
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
-
-    def mangas_from_page(self, page: bytes):
-        bs = BeautifulSoup(page, "html.parser")
 
         container = bs.find("div", {"class": "listupd"})
 
