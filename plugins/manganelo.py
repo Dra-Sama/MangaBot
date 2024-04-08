@@ -8,9 +8,10 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 class ManganeloClient(MangaClient):
 
-    base_url = urlparse("https://ww5.manganelo.tv/")
-    search_url = urljoin(base_url.geturl(), "search/")
-    updates_url = urljoin(base_url.geturl(), "genre")
+    base_url = urlparse("https://m.manganelo.com/")
+    search_url = urljoin(base_url.geturl(), "search/story/")
+    updates_url = urljoin(base_url.geturl(), "genre-all-update-latest")
+    chapter_url = "https://chapmanganelo.com/"
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -26,8 +27,8 @@ class ManganeloClient(MangaClient):
 
         mangas = [card.findNext('a') for card in cards]
         names = [manga.get('title') for manga in mangas]
-        url = [f'{self.base_url.geturl()}{manga.get("href")[1:]}' for manga in mangas]
-        images = [f'{self.base_url.geturl()}{manga.findNext("img").get("src")[1:]}' for manga in mangas]
+        url = [manga.get("href") for manga in mangas]
+        images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -40,7 +41,7 @@ class ManganeloClient(MangaClient):
 
         items = [li.findNext('a') for li in lis]
 
-        links = [f'{self.base_url.geturl()}{item.get("href")[1:]}' for item in items]
+        links = [item.get("href") for item in items]
         texts = [item.string for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
@@ -53,14 +54,12 @@ class ManganeloClient(MangaClient):
         urls = dict()
 
         for manga_item in manga_items:
-            manga_url = f'{self.base_url.geturl()}' \
-                        f'{manga_item.findNext("a", {"class": "genres-item-img"}).get("href")[1:]}'
+            manga_url = manga_item.findNext("a", {"class": "genres-item-img"}).get("href")
 
             if manga_url in urls:
                 continue
 
-            chapter_url = f'{self.base_url.geturl()}' \
-                          f"{manga_item.findNext('a', {'class': 'genres-item-chap'}).get('href')[1:]}"
+            chapter_url = manga_item.findNext('a', {'class': 'genres-item-chap'}).get('href')
 
             urls[manga_url] = chapter_url
 
@@ -73,12 +72,12 @@ class ManganeloClient(MangaClient):
 
         images = ul.find_all('img')
 
-        images_url = [quote(img.get('data-src'), safe=':/%') for img in images]
+        images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        query = quote(query)
+        query = quote(query.replace(' ', '_').lower())
 
         request_url = f'{self.search_url}'
 
@@ -107,8 +106,14 @@ class ManganeloClient(MangaClient):
         for chapter in self.chapters_from_page(content, manga_card):
             yield chapter
 
+    def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
+        headers = dict(self.headers)
+        headers['Referer'] = self.chapter_url
+
+        return self.get_url(url, headers=headers, *args, **kwargs)
+
     async def contains_url(self, url: str):
-        return url.startswith(self.base_url.geturl())
+        return url.startswith(self.base_url.geturl()) or url.startswith(self.chapter_url)
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
