@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
-class ComickClient(MangaClient):
+class ComickClient():
     base_url = "https://comick.io/"
     search_url = urljoin(base_url, "search/autosearch")
     search_param = 'key'
