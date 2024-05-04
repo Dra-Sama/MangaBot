@@ -9,7 +9,7 @@ from plugins.client import MangaClient, MangaCard, MangaChapter
 
 class ComickClient():
     base_url = "https://comick.io/"
-    search_url = urljoin(base_url, "search/autosearch")
+    search_url = urljoin(base_url, "/api/manga/comick/search/autosearch")
     search_param = 'key'
 
     pre_headers = {
