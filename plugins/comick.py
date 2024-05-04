@@ -7,10 +7,10 @@ from bs4 import BeautifulSoup
 from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
-class ComickClient():
-    base_url = "https://comick.io/"
-    search_url = urljoin(base_url, "comick/search/autosearch")
-    search_param = 'key'
+class Comick:
+    
+    base_domain = "https://comick.cc/"
+    api_domain = "https://api.comick.cc/"
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -56,12 +56,15 @@ class ComickClient():
 
         return urls
 
-    async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        request_url = self.search_url
-        data = {self.search_param: query}
-        content = await self.get_url(request_url, data=data, method='post')
-
-        return self.mangas_from_page(content)
+    def search_mangas(title):
+        
+        #format:
+        #{id,hid,slug,title,md_titles:[{title}],md_covers:[{w,h,b2key}],highlight}
+        
+        url = f"{Comick.api_domain}v1.0/search?q={title}&t=true"
+        response = requests.get(url, headers=Comick.Headers)
+        result  = response.json()
+        return result  
 
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
         request_url = manga_card.url
