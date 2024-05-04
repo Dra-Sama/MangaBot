@@ -14,32 +14,32 @@
     "env": {
         "API_ID": {
             "description": "Get this value from https://my.telegram.org/apps",
-            "value": "13986700",
+            "value": "",
             "required": true
         },
         "API_HASH": {
             "description": "Get this value from https://my.telegram.org/apps",
-            "value": "95d2e8a1aa81fc9b7fa8a8aeafe59537",
+            "value": "",
             "required": true
         },
         "BOT_TOKEN": {
             "description": "Get this value from @BotFather in telegram",
-            "value":  "5571587428:AAGqT50otoSffxEqlKrrIPX7k6XTWx3lB14"
+            "value":  ""
             "required": true
         },
         "CACHE_CHANNEL" : {
             "description": "Channel that will be used to only ask for a chapter once",
-            "value":  "Shanks_Bot_LOGS"
+            "value":  ""
             "required": true
         },
         "CHANNEL": {
             "description": "Channel that users must be subscribed in order to use the bot.",
-            "value":  "Wizard_Bots"
+            "value":  ""
             "required": false
         },
         "DATABASE_URL_PRIMARY": {
             "description": "Will be used as database url. If not given heroku database will be used instead.",
-            "value":  "postgres://lcaavsii:O49zZxbRCi-GDwggo0LWtP3dE0AOtewy@rosie.db.elephantsql.com/lcaavsii"
+            "value":  ""
             "required": true
         }
     },
