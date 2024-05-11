@@ -718,33 +718,9 @@ async def chapter_creation(worker_id: int = 0):
         await msg.delete()
 
 
-# Set up logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Define the function to handle the command
-def send_image(update, context):
-    # Replace 'GROUP_CHAT_ID' with the ID of your group chat
-    group_chat_id = '-1001723894782'
-    
-    # Replace 'YOUR_IMAGE_URL' with the URL of the image
-    image_url = 'https://te.legra.ph/file/5a2a761e6a899163db6d4.jpg'
-    
-    # Send message with image to the group
-    context.bot.send_photo(chat_id=group_chat_id, photo=image_url, caption='ɪ ᴀᴍ ᴀʟɪᴠᴇ! 🖤')
-
-# Set up the Telegram Bot
-def main():
-    # Replace 'YOUR_BOT_TOKEN' with your actual bot token
-    updater = Updater(token='5571587428:AAFSMPprnqCdbiNX2GnnLyJ7pDl7nsQhVCI', use_context=True)
-    dp = updater.dispatcher
-
-    # Define the command handler
-    dp.add_handler(CommandHandler("send_image", send_image))
-
-    # Start the Bot
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+async def send_images(client: Client, message: Message):
+    GROUPSTART_IMG = "https://te.legra.ph/file/6e2f1c2535438bb75cbb0.mp4"
+    channel = env_vars.get('CHANNEL')
+    chat_id = env_vars.get('Group_Chat_Id')
+    context.bot.send_photo(chat_id=Group_Chat_Id, photo=GROUPSTART_IMG, caption=f'Hello!\n ┗► {} ◄┛\nSuper Saiyan here\nPower lavel time')
+   
