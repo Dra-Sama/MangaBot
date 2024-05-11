@@ -4,10 +4,6 @@ from ast import arg
 import asyncio
 import re
 from dataclasses import dataclass
-import datetime as dt
-import datetime
-import time
-from telegram import Bot
 import json
 
 
@@ -721,8 +717,3 @@ async def chapter_creation(worker_id: int = 0):
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-
-
-bot.send_photo(chat_id=group_chat_id, photo=image_url, caption='I'm alive)
-
-
