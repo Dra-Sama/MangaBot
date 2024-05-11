@@ -724,7 +724,7 @@ async def send_images(client: Client, message: Message):
     channel = env_vars.get('CHANNEL')
     Group_Chat_Id = env_vars.get('Group_Chat_Id')
     BOT_TOKEN = env_vars.get('BOT_TOKEN')
-    context.bot.send_photo(chat_id=Group_Chat_Id, photo=GROUPSTART_IMG, caption=f'Hello!\n ┗► {} ◄┛\nSuper Saiyan here\nPower lavel time')
+    context.bot.send_photo(chat_id=Group_Chat_Id, photo=GROUPSTART_IMG, caption='Hello!\n ┗► {} ◄┛\nSuper Saiyan here\nPower lavel time')
    
 async def photo():
       updater = Updater(token='BOT_TOKEN', use_context=True)
