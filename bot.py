@@ -4,6 +4,7 @@ from ast import arg
 import asyncio
 import re
 from dataclasses import dataclass
+import datetime as dt
 import json
 from telegram.ext import Updater, CommandHandler
 import logging
@@ -15,9 +16,7 @@ from config import env_vars, dbname
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
-    MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikemangaClient, \
-    KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient
+from plugins import Manhwa18Client
 import os
 
 from pyrogram import Client, filters
