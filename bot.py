@@ -16,7 +16,6 @@ from config import env_vars, dbname
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
-from plugins import Manhwa18Client
 import os
 
 from pyrogram import Client, filters
