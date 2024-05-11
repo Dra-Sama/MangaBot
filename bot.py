@@ -5,7 +5,13 @@ import asyncio
 import re
 from dataclasses import dataclass
 import datetime as dt
+import datetime
+import time
+from telegram import Bot
+from telegram.utils.request import Request
+from telegram.error import TelegramError
 import json
+
 
 import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaDocument
@@ -717,3 +723,14 @@ async def chapter_creation(worker_id: int = 0):
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
+
+
+bot = Bot(token='5571587428:AAFSMPprnqCdbiNX2GnnLyJ7pDl7nsQhVCI')
+
+group_chat_id = '-1001723894782'
+
+image_url = 'IMAGE_URL'
+
+bot.send_photo(chat_id=group_chat_id, photo=image_url, caption='I'm alive)
+
+
