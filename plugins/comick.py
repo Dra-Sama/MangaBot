@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
-class ComickClient:
+class ComickClient(MangaClient):
     
     base_domain = "https://comick.cc/"
     api_domain = "https://api.comick.cc/"
