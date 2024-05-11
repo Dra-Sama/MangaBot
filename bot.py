@@ -8,8 +8,6 @@ import datetime as dt
 import datetime
 import time
 from telegram import Bot
-from telegram.utils.request import Request
-from telegram.error import TelegramError
 import json
 
 
