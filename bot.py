@@ -723,12 +723,6 @@ async def chapter_creation(worker_id: int = 0):
         await msg.delete()
 
 
-bot = Bot(token='5571587428:AAFSMPprnqCdbiNX2GnnLyJ7pDl7nsQhVCI')
-
-group_chat_id = '-1001723894782'
-
-image_url = 'IMAGE_URL'
-
 bot.send_photo(chat_id=group_chat_id, photo=image_url, caption='I'm alive)
 
 
