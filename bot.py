@@ -13,7 +13,7 @@ import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaDocument
 
 from config import env_vars, dbname
-from client import MangaCard
+from .client import MangaClient, MangaCard, MangaChapter
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
