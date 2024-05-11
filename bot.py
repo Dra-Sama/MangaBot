@@ -6,17 +6,17 @@ import re
 from dataclasses import dataclass
 import datetime as dt
 import json
-from telegram.ext import Updater, CommandHandler
-import logging
 
 import pyrogram.errors
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaDocument
 
 from config import env_vars, dbname
-from .client import MangaClient, MangaCard, MangaChapter
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
+from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
+    MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikemangaClient, \
+    KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient
 import os
 
 from pyrogram import Client, filters
@@ -53,6 +53,7 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "MangaBuddy": MangaBuddyClient(),
         "AsuraScans": AsuraScansClient(),
         "NineManga": NineMangaClient(),        
+        "Comick": ComickClient(),
         "Likemanga": LikemangaClient(),
           },
     "🇪🇸 ES": {
@@ -717,25 +718,3 @@ async def chapter_creation(worker_id: int = 0):
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-
-
-async def send_images(client: Client, message: Message):
-    GROUPSTART_IMG = "https://te.legra.ph/file/6e2f1c2535438bb75cbb0.mp4"
-    channel = env_vars.get('CHANNEL')
-    Group_Chat_Id = env_vars.get('Group_Chat_Id')
-    BOT_TOKEN = env_vars.get('BOT_TOKEN')
-    context.bot.send_photo(chat_id=Group_Chat_Id, photo=GROUPSTART_IMG, caption='Hello!\n ┗► {} ◄┛\nSuper Saiyan here\nPower lavel time')
-   
-async def photo():
-      updater = Updater(token='BOT_TOKEN', use_context=True)
-      dp = updater.dispatcher
-
-   
-      dp.add_handler(CommandHandler("send_image", send_image))
-
-    
-      updater.start_polling()
-      updater.idle()
-
-if __name__ == '__photo__':
-    main()
