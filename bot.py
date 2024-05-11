@@ -721,6 +721,20 @@ async def chapter_creation(worker_id: int = 0):
 async def send_images(client: Client, message: Message):
     GROUPSTART_IMG = "https://te.legra.ph/file/6e2f1c2535438bb75cbb0.mp4"
     channel = env_vars.get('CHANNEL')
-    chat_id = env_vars.get('Group_Chat_Id')
+    Group_Chat_Id = env_vars.get('Group_Chat_Id')
+    BOT_TOKEN = env_vars.get('BOT_TOKEN')
     context.bot.send_photo(chat_id=Group_Chat_Id, photo=GROUPSTART_IMG, caption=f'Hello!\n ┗► {} ◄┛\nSuper Saiyan here\nPower lavel time')
    
+async def photo():
+      updater = Updater(token='BOT_TOKEN', use_context=True)
+      dp = updater.dispatcher
+
+   
+      dp.add_handler(CommandHandler("send_image", send_image))
+
+    
+      updater.start_polling()
+      updater.idle()
+
+if __name__ == '__photo__':
+    main()
