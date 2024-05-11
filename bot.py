@@ -53,7 +53,6 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "MangaBuddy": MangaBuddyClient(),
         "AsuraScans": AsuraScansClient(),
         "NineManga": NineMangaClient(),        
-        "Comick": ComickClient(),
         "Likemanga": LikemangaClient(),
           },
     "🇪🇸 ES": {
@@ -88,7 +87,7 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
-disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus", "[🇪🇸 ES] MangasIn", "[🇬🇧 EN] Comick"]
+disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus", "[🇪🇸 ES] MangasIn"]
 
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
