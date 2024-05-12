@@ -73,15 +73,12 @@ class AsuraScansClient(MangaClient):
         return urls
 
     async def pictures_from_chapters(self, content: bytes, response=None):
-        bs = BeautifulSoup(content, "html.parser")
-
-        container = bs.find("div", {"id": "readerarea"})
-
-        images = map(lambda x: x.findNext('img'), container.findAll('p'))
-
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
-        return images_url
+        with self.session.get(chapter.url) as resp:
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+        soup = soup.find("div", {"id": "readerarea"})
+        for tag in soup("p"):
+            yield ChapterImage(url=tag.findNext("img")["src"])
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
