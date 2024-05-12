@@ -77,7 +77,7 @@ class AsuraScansClient(MangaClient):
 
         container = bs.find("div", {"id": "readerarea"})
 
-        images = container.find_all("ts-main-image")
+        images = container.find_all("img")
 
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
