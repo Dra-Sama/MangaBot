@@ -92,13 +92,16 @@ class AsuraScansClient(MangaClient):
 
         return self.mangas_from_page(content)
 
-    async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
-
-        request_url = f'{manga_card.url}'
-
-        content = await self.get_url(request_url)
-
-        return self.chapters_from_page(content, manga_card)[(page - 1) * 20:page * 20]
+    async def get_chapters(self, manga: Manga) -> Iterable[Chapter]:
+        with self.session.get(manga.url) as resp:
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
+        anchors = [
+            li.findNext("a") for li in soup.find("div", {"id": "chapterlist"})("li")
+        ]
+        for anchor in anchors:
+            title = anchor.findChild("span", {"class": "chapternum"}).string.strip()
+            yield Chapter(url=anchor["href"], name=title)
 
     async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
         manga_card = MangaCard(self, manga_name, manga_url, '')
