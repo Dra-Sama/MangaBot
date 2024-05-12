@@ -75,9 +75,9 @@ class AsuraScansClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        container = bs.find("div", {"id": "readerarea" and "lazyload"})
+        container = bs.find("div", {"id": "readerarea"}, {"class": "rdminimal")
 
-        images = map(lambda x: x.findNext('img'), container.findAll('p'))
+        images = map(lambda x: x.findNext('webp'), container.findAll('ts-main-image'))
 
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
