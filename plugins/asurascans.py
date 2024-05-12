@@ -26,13 +26,13 @@ class AsuraScansClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"class": "manga-lists"})
+        container = bs.find("div", {"class": "listupd"})
 
-        cards = container.find_all("div", {"class": "thumb"})
+        cards = container.find_all("div", {"class": "bs"})
 
         mangas = [card.findNext('a') for card in cards]
         names = [manga.get('title') for manga in mangas]
-        url = [self.search_url + manga.get("href") for manga in mangas]
+        url = [manga.get("href") for manga in mangas]
         images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
