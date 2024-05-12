@@ -23,7 +23,7 @@ class AsuraScansClient(MangaClient):
     def __init__(self, *args, name="AsuraScans", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
-    async def mangas_from_page(self, page: bytes):
+    def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
         container = bs.find("div", {"class": "listupd"})
@@ -39,7 +39,7 @@ class AsuraScansClient(MangaClient):
 
         return mangas
 
-    async def chapters_from_page(self, page: bytes, manga: MangaCard = None):
+    def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
         container = bs.find("div", {"id": "chapterlist"})
@@ -53,7 +53,7 @@ class AsuraScansClient(MangaClient):
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    async def updates_from_page(self, content):
+    def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
 
         manga_items = bs.find_all("div", {"class": "utao"})
@@ -75,7 +75,7 @@ class AsuraScansClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        container = bs.find("div", {"id": "lazyload"})
+        container = bs.find("div", {"id": "readerarea" and "lazyload"})
 
         images = map(lambda x: x.findNext('img'), container.findAll('p'))
 
