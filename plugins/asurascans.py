@@ -1,3 +1,6 @@
+#THis Code is made by Wizard Bots on telegram
+# t.me/Wizard_Bots
+
 from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
@@ -19,7 +22,7 @@ class AsuraScansClient(MangaClient):
 
     def __init__(self, *args, name="AsuraScans", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
-
+    # Done
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
@@ -29,13 +32,14 @@ class AsuraScansClient(MangaClient):
 
         mangas = [card.findNext('a') for card in cards]
         names = [manga.get('title') for manga in mangas]
-        url = [manga.get("href") for manga in mangas]
+        url = [self.search_url + manga.get("href") for manga in mangas]
         images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
         return mangas
 
+    # Done
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
@@ -45,11 +49,12 @@ class AsuraScansClient(MangaClient):
 
         items = [li.findNext('a') for li in lis]
 
-        links = [item.get("href") for item in items]
-        texts = [item.findChild('span', {'class': 'chapternum'}).string.strip() for item in items]
+        links = [self.search_url + item.get("href") for item in items]
+        texts = [item.string.strip() for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
+    # Unknown
     def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
 
@@ -69,29 +74,32 @@ class AsuraScansClient(MangaClient):
 
         return urls
 
+    # Done  
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        container = bs.find("div", {"id": "readerarea"})
-
-        images = map(lambda x: x.findNext('img'), container.findAll('p'))
+        container = bs.find("div", {"class": "read-content"})
+        
+        images = container.find_all("img")
 
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
         return images_url
 
+    # Done
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
 
         request_url = self.search_url
 
         if query:
-            request_url += f'?{self.search_param}={query}'
+            request_url += f'search?{self.search_param}={query}'
 
         content = await self.get_url(request_url)
 
         return self.mangas_from_page(content)
 
+    # Done
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
 
         request_url = f'{manga_card.url}'
