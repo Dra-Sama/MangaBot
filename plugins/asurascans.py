@@ -49,11 +49,11 @@ class AsuraScansClient(MangaClient):
 
         items = [li.findNext('a') for li in lis]
 
-        links = [self.search_url + item.get("href") for item in items]
-        texts = [item.string.strip() for item in items]
+        links = [item.get("href") for item in items]
+        texts = [item.findChild('span', {'class': 'chapternum'}).string.strip() for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
-
+        
     # Unknown
     def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
