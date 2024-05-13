@@ -23,13 +23,8 @@ class ComickClient(MangaClient):
     }
 
     def __init__(self, *args, name="Comick", language=None, **kwargs):
-        if language is None:
             language = 'en'
-        else:
-            self.base_url = urlparse(f"https://{language}.comick.io/")
-        self.search_url = urljoin(self.base_url.geturl(), 'search/')
-        self.updates_url = self.base_url.geturl()
-        super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
+
 
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
