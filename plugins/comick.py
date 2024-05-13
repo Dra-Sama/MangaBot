@@ -14,15 +14,15 @@ from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 class ComickClient(MangaClient):
 
     base_url = urlparse("https://comick.io/")
+    search_url = base_url.geturl()
     search_param = 'search'
-    query_param = 'q'
+    updates_url = base_url.geturl()
 
     pre_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0',
-        'Accept-Language': 'en-US,en;q=0.5',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-     def __init__(self, *args, name="Comick", **kwargs):
+    def __init__(self, *args, name="KissManga", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
 
@@ -103,7 +103,7 @@ class ComickClient(MangaClient):
         request_url = self.search_url
 
         if query:
-            request_url += f'{self.search_param}?{query}'
+            request_url += f'{self.search_param}?q={query}'
 
         content = await self.get_url(request_url)
 
