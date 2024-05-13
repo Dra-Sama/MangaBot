@@ -22,7 +22,7 @@ class ComickClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="KissManga", **kwargs):
+    def __init__(self, *args, name="Comick", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
 
@@ -97,21 +97,21 @@ class ComickClient(MangaClient):
 
         return images_url
 
-    async def search(self, querys: str = "", page: int = 1) -> List[MangaCard]:
-        querys = quote_plus(query)
+    async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
+        query = quote_plus(query)
 
         request_url = self.search_url
 
-        if querys:
-            request_url += f'search?q={query}'
+        if query:
+            request_url += f'{self.search_param}?q={query}'
 
-        query = await self.get_url(request_url)
+        content = await self.get_url(request_url)
 
-        return self.mangas_from_page(query)
+        return self.mangas_from_page(content)
 
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
 
-        request_url = f'{manga_card.url}?{self.query_param}'
+        request_url = f'{manga_card.url}?q={self.query_param}'
 
         content = await self.get_url(request_url)
 
@@ -120,7 +120,7 @@ class ComickClient(MangaClient):
     async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
         manga_card = MangaCard(self, manga_name, manga_url, '')
 
-        request_url = f'{manga_card.url}?{self.query_param}'
+        request_url = f'{manga_card.url}?q={self.query_param}'
 
         content = await self.get_url(request_url)
 
