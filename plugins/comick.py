@@ -103,7 +103,7 @@ class ComickClient(MangaClient):
         request_url = self.search_url
 
         if query:
-            request_url += f'{self.search_param}?q={query}'
+            request_url += f'search?q={query}'
 
         content = await self.get_url(request_url)
 
