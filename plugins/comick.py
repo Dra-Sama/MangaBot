@@ -45,14 +45,14 @@ class ComickClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"class": "chapterbox"})
+        container = bs.find("div", {"class": "book"})
 
-        lis = container.find_all("li")
+        lis = container.find_all("chap")
 
         items = [li.findNext('a') for li in lis]
 
         links = [item.get("href") for item in items]
-        texts = [item.get("title").strip() for item in items]
+        texts = [item.get("og:title").strip() for item in items]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
