@@ -29,14 +29,14 @@ class ComickClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"class": "apple-touch-startup-image"})
+        container = bs.find("div", {"class": "book"})
 
         cards = container.find_all("div", {"class": "js"})
 
         mangas = [card.findNext('a') for card in cards]
-        names = [manga.get('title') for manga in mangas]
+        names = [manga.get('og:title') for manga in mangas]
         url = [manga.get("href") for manga in mangas]
-        images = [manga.findNext("img").get("src") for manga in mangas]
+        images = [manga.findNext("img").get("content") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
