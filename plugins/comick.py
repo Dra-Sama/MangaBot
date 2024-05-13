@@ -26,7 +26,7 @@ class ComickClient(MangaClient):
         if language is None:
             language = 'en'
         else:
-            self.base_url = urlparse(f"https://{language}.ninemanga.com/")
+            self.base_url = urlparse(f"https://{language}.comick.io/")
         self.search_url = urljoin(self.base_url.geturl(), 'search/')
         self.updates_url = self.base_url.geturl()
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
