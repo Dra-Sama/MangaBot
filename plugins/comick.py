@@ -29,14 +29,14 @@ class ComickClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("ul", {"class": "direlist"})
+        container = bs.find("div", {"class": "apple-touch-startup-image"})
 
-        cards = container.find_all("li")
+        cards = container.find_all("div", {"class": "js"})
 
-        mangas = [card.findNext('a', {'class': 'bookname'}) for card in cards]
-        names = [manga.string.strip().title() for manga in mangas]
+        mangas = [card.findNext('a') for card in cards]
+        names = [manga.get('title') for manga in mangas]
         url = [manga.get("href") for manga in mangas]
-        images = [card.findNext("img").get("src") for card in cards]
+        images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -97,17 +97,17 @@ class ComickClient(MangaClient):
 
         return images_url
 
-    async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        query = quote_plus(query)
+    async def search(self, querys: str = "", page: int = 1) -> List[MangaCard]:
+        querys = quote_plus(query)
 
         request_url = self.search_url
 
-        if query:
+        if querys:
             request_url += f'search?q={query}'
 
-        content = await self.get_url(request_url)
+        query = await self.get_url(request_url)
 
-        return self.mangas_from_page(content)
+        return self.mangas_from_page(query)
 
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
 
