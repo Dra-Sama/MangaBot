@@ -22,8 +22,8 @@ class ComickClient(MangaClient):
         'Accept-Language': 'en-US,en;q=0.5',
     }
 
-    def __init__(self, *args, name="Comick", language=None, **kwargs):
-            language = 'en'
+     def __init__(self, *args, name="Comick", **kwargs):
+        super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
 
     def mangas_from_page(self, page: bytes):
