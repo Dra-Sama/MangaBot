@@ -169,6 +169,12 @@ async def on_private_message(client: Client, message: Message):
 
 @bot.on_message(filters=filters.command(['start']))
 async def on_start(client: Client, message: Message):
+     id = message.from_user.id
+    if not await present_user(id):
+        try:
+            await add_user(id)
+        except:
+            pass
     logger.info(f"User {message.from_user.id} started the bot")
     await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
                         "\n"
