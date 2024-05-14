@@ -10,14 +10,14 @@ from plugins.client import MangaClient, MangaCard, MangaChapter
 
 
 @dataclass
-class MangaBuddyCard(MangaCard):
+class NovelBuddyCard(MangaCard):
     read_url: str
 
     def get_url(self):
         return self.read_url
 
 
-class MangaBuddyClient(MangaClient):
+class NovelBuddyClient(MangaClient):
     base_url = urlparse("https://novelbuddy.com/")
     search_url = urljoin(base_url.geturl(), "search")
     search_param = 'q'
