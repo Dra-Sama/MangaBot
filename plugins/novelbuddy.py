@@ -34,7 +34,7 @@ class NovelBuddyClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        cards = bs.find_all("div", {"class": "book-info"})
+        cards = bs.find_all("div", {"class": "book-item"})
 
         mangas = [card.a for card in cards if card.a is not None]
         names = [manga.get("title").strip() for manga in mangas]
