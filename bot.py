@@ -175,7 +175,7 @@ async def on_start(client: Client, message: Message):
         try:
             await add_user(id)
         except:
-          #  pass
+              pass
     await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
                         "\n"
                         "How to use? Just type the name of some manga you want to keep up to date.\n"
