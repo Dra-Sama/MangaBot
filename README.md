@@ -35,6 +35,7 @@
 ### ***Source Code*** : [Repo](Dra-Sama/mangabot)
 
 #### Note: `If you Like My Work, Give Stars ⭐ to the Repo and Follow Me on Github`
+####    If You Want To Host Your Own Bot Then Change Your env.json File
     
 ----
 </div>
