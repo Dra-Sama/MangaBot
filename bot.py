@@ -17,7 +17,7 @@ from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikemangaClient, \
     KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient, \
-    NovelBuddyClient,
+    NovelBuddyClient
 import os
 
 from pyrogram import Client, filters
