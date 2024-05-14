@@ -184,10 +184,10 @@ async def on_start(client: Client, message: Message):
                         "`One Piece`\n"
                         "\n"
                         "Check /help for more information.",
-                            reply_markup=InlineKeyboardMarkup(
-                                [[InlineKeyboardButton('Update Channel!', url=f't.me/{channel}')]]
+                         reply_markup=InlineKeyboardMarkup(
+                            [[InlineKeyboardButton('Update Channel!', url=f't.me/{channel}')]]
                             ))
-                        logger.info(f"User {message.from_user.id} finished the start command")
+    logger.info(f"User {message.from_user.id} finished the start command")
     
 
 @bot.on_message(filters=filters.command(['help']))
