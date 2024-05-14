@@ -39,10 +39,10 @@ class NovelBuddyClient(MangaClient):
         mangas = [card.a for card in cards if card.a is not None]
         names = [manga.get("title").strip() for manga in mangas]
         read_url = [urljoin(self.base_url.geturl(), manga.get('href').strip()) for manga in mangas]
-        url = [f'https://novelbuddy.com/api/manga{manga.get("href").strip()}/chapters?source=detail' for manga in mangas]
+        url = [f'https://novelbuddy.com/api/novel{manga.get("href").strip()}/chapters?source=detail' for manga in mangas]
         images = [manga.find("img").get('data-src').strip() for manga in mangas]
 
-        mangas = [MangaBuddyCard(self, *tup) for tup in zip(names, url, images, read_url)]
+        mangas = [NovelBuddyCard(self, *tup) for tup in zip(names, url, images, read_url)]
 
         return mangas
 
@@ -71,7 +71,7 @@ class NovelBuddyClient(MangaClient):
         for manga_item in manga_items:
 
             manga_url_part = manga_item.findNext('a').get('href')
-            manga_url = f'https://novelbuddy.com/api/manga{manga_url_part}/chapters?source=detail'
+            manga_url = f'https://novelbuddy.com/api/novel{manga_url_part}/chapters?source=detail'
 
             chapter_item = manga_item.findNext("div", {"class": "chap-item"})
             if not chapter_item or not chapter_item.a:
@@ -138,8 +138,8 @@ class NovelBuddyClient(MangaClient):
 
     async def get_cover(self, manga_card: MangaCard, *args, **kwargs):
         headers = {**self.pre_headers, 'Referer': self.base_url.geturl()}
-        return await super(MangaBuddyClient, self).get_cover(manga_card, *args, headers=headers, **kwargs)
+        return await super(NovelBuddyClient, self).get_cover(manga_card, *args, headers=headers, **kwargs)
 
     async def get_picture(self, manga_chapter: MangaChapter, url, *args, **kwargs):
         headers = {**self.pre_headers, 'Referer': self.base_url.geturl()}
-        return await super(MangaBuddyClient, self).get_picture(manga_chapter, url, *args, headers=headers, **kwargs)
+        return await super(NovelBuddyClient, self).get_picture(manga_chapter, url, *args, headers=headers, **kwargs)
