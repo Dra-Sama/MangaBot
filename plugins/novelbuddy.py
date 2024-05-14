@@ -22,7 +22,7 @@ class NovelBuddyClient(MangaClient):
     search_url = urljoin(base_url.geturl(), "search")
     search_param = 'q'
     home_page = urljoin(base_url.geturl(), "home-page")
-    img_server = "https://s1.mbbcdnv1.xyz/file/img-nbuddy/manga/"
+    img_server = "https://s1.mbbcdnv1.xyz/file/img-nbuddy/novel/"
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
@@ -34,7 +34,7 @@ class NovelBuddyClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        cards = bs.find_all("div", {"class": "book-item"})
+        cards = bs.find_all("div", {"class": "book-info"})
 
         mangas = [card.a for card in cards if card.a is not None]
         names = [manga.get("title").strip() for manga in mangas]
