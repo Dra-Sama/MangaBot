@@ -4,7 +4,6 @@ import os
 from logger import logger
 from bot import bot, manga_updater, chapter_creation
 from models import DB
-from config import env_vars
 
 
 PIC = "https://te.legra.ph/file/5a2a761e6a899163db6d4.jpg"
