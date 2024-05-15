@@ -74,15 +74,6 @@ if os.path.exists(cache_dir):
 with open("tools/help_message.txt", "r") as f:
     help_msg = f.read()
 
-START_MSG = """ Welcome to the best manga pdf bot in telegram!!
-                        
-                        How to use? Just type the name of some manga you want to keep up to date.
-                        
-                        For example:
-                        `One Piece`\n
-                        
-                        Check /help for more information. 
-                        Updates Channel : @Wizard_Bots """
 
 class OutputOptions(enum.IntEnum):
     PDF = 1
@@ -178,15 +169,16 @@ async def on_private_message(client: Client, message: Message):
 
 @bot.on_message(filters=filters.command(['start']))
 async def on_start(client: Client, message: Message):
-     logger.info(f"User {message.from_user.id} started the bot")
-      #id = message.from_user.id
-      #if not await present_user(id):
-        #try:
-            #await add_user(id)
-        #except:
-              #pass
-         await message.reply("START_MSG")
-  logger.info(f"User {message.from_user.id} finished the start command")
+    logger.info(f"User {message.from_user.id} started the bot")
+    await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
+                        "\n"
+                        "How to use? Just type the name of some manga you want to keep up to date.\n"
+                        "\n"
+                        "For example:\n"
+                        "`One Piece`\n"
+                        "\n"
+                        "Check /help for more information.")
+    logger.info(f"User {message.from_user.id} finished the start command")
     
 
 @bot.on_message(filters=filters.command(['help']))
