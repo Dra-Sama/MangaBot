@@ -10,7 +10,7 @@ PIC = "https://te.legra.ph/file/5a2a761e6a899163db6d4.jpg"
 C_Group=env_vars.get('C_GROUP')
 
 async def async_main():
-    db = DB(
+    db = DB()
     await db.connect()
     
 if __name__ == '__main__':
