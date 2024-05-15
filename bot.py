@@ -292,15 +292,15 @@ async def send_text(client: Bot, message: Message):
                 pass
             total += 1
         
-        status = f"""<b><u>Broadcast Completed</u>
+        status = f"""<b><u>Broadcast Completed</u> """
 
-Total Users: <code>{total}</code>
+""" Total Users: <code>{total}</code>
 Successful: <code>{successful}</code>
 Blocked Users: <code>{blocked}</code>
 Deleted Accounts: <code>{deleted}</code>
 Unsuccessful: <code>{unsuccessful}</code></b>"""
         
-        return await pls_wait.edit(status)
+        """ return await pls_wait.edit(status)
 
     else:
         msg = await message.reply(REPLY_ERROR)
