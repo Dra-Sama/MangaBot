@@ -9,7 +9,7 @@ from tools import LanguageSingleton
 
 T = TypeVar("T")
 
-user_data = database['users']
+#user_data = database['users']
 
 
 class ChapterFile(SQLModel, table=True):
