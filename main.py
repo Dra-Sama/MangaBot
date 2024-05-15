@@ -17,6 +17,6 @@ if __name__ == '__main__':
     loop.run_until_complete(async_main())
     loop.create_task(manga_updater())
     bot.start()
-    bot.send_photo(-1001723894782, photo=PIC, caption="I'm alive")
+    bot.send_photo(-1001723894782, photo=PIC, caption="Hey Guys! \nI'm alive.\nUse Me @Manga_Downloaderx_bot")
     idle()
     bot.stop()
