@@ -74,6 +74,14 @@ if os.path.exists(cache_dir):
 with open("tools/help_message.txt", "r") as f:
     help_msg = f.read()
 
+START_MSG = "Welcome to the best manga pdf bot in telegram!!\n"
+                        "\n"
+                        "How to use? Just type the name of some manga you want to keep up to date.\n"
+                        "\n"
+                        "For example:\n"
+                        "`One Piece`\n"
+                        "\n"
+                        "Check /help for more information."
 
 class OutputOptions(enum.IntEnum):
     PDF = 1
@@ -176,15 +184,8 @@ async def on_start(client: Client, message: Message):
             #await add_user(id)
         #except:
               #pass
-    await message.reply("Welcome to the best manga pdf bot in telegram!!\n"
-                        "\n"
-                        "How to use? Just type the name of some manga you want to keep up to date.\n"
-                        "\n"
-                        "For example:\n"
-                        "`One Piece`\n"
-                        "\n"
-                        "Check /help for more information.")
-    logger.info(f"User {message.from_user.id} finished the start command")
+         await message.reply("START_MSG")
+  logger.info(f"User {message.from_user.id} finished the start command")
     
 
 @bot.on_message(filters=filters.command(['help']))
