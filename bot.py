@@ -74,14 +74,15 @@ if os.path.exists(cache_dir):
 with open("tools/help_message.txt", "r") as f:
     help_msg = f.read()
 
-START_MSG = """ Welcome to the best manga pdf bot in telegram!!\n"
-                        "\n"
-                        "How to use? Just type the name of some manga you want to keep up to date.\n"
-                        "\n"
-                        "For example:\n"
-                        "`One Piece`\n"
-                        "\n"
-                        "Check /help for more information. """
+START_MSG = """ Welcome to the best manga pdf bot in telegram!!
+                        
+                        How to use? Just type the name of some manga you want to keep up to date.
+                        
+                        For example:
+                        `One Piece`\n
+                        
+                        Check /help for more information. 
+                        Updates Channel : @Wizard_Bots """
 
 class OutputOptions(enum.IntEnum):
     PDF = 1
