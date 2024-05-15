@@ -8,7 +8,6 @@ from config import env_vars
 
 
 PIC = "https://te.legra.ph/file/5a2a761e6a899163db6d4.jpg"
-C_Group=env_vars.get('C_GROUP')
 
 async def async_main():
     db = DB()
@@ -19,6 +18,6 @@ if __name__ == '__main__':
     loop.run_until_complete(async_main())
     loop.create_task(manga_updater())
     bot.start()
-    bot.send_photo({C_Group}, photo=PIC, caption="Hey Guys!. I am Alive")
+    bot.send_photo(-1001723894782, photo=PIC, caption="I'm alive")
     idle()
     bot.stop()
