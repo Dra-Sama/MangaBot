@@ -183,10 +183,7 @@ async def on_start(client: Client, message: Message):
                         "For example:\n"
                         "`One Piece`\n"
                         "\n"
-                        "Check /help for more information.",
-                         reply_markup=InlineKeyboardMarkup(
-                            [[InlineKeyboardButton('Update Channel!', url=f't.me/{channel}')]]
-                            ))
+                        "Check /help for more information.")
     logger.info(f"User {message.from_user.id} finished the start command")
     
 
