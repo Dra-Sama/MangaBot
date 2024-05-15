@@ -261,7 +261,7 @@ async def on_options_command(client: Client, message: Message):
 async def on_unknown_command(client: Client, message: Message):
     await message.reply("Unknown command")
 
-@Bot.on_message(filters.private & filters.command(['broadcast']))
+""" @Bot.on_message(filters.private & filters.command(['broadcast']))
 async def send_text(client: Bot, message: Message):
     if message.reply_to_message:
         query = await full_userbase()
@@ -306,7 +306,7 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-        pass
+        pass """
 
 
 @bot.on_message(filters=filters.text)
