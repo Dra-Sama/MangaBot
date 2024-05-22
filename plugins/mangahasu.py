@@ -72,13 +72,13 @@ class MangaHasuClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        div = bs.find('div', {'class': 'img'})
+        container = bs.find("div", {"id": "img"})
 
-        imgs = div.findAll('img')
+        images = container.find_all("img")
 
-        images_url = [quote(img.get('data-src'), safe=':/%') for img in imgs]
+        images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
-        return images_url
+        return images_urll
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         request_url = self.search_url
