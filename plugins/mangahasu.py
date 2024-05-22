@@ -78,7 +78,7 @@ class MangaHasuClient(MangaClient):
 
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
 
-        return images_urll
+        return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         request_url = self.search_url
