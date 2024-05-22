@@ -27,7 +27,7 @@ class MangaHasuClient(MangaClient):
         mangas = [card.a for card in cards]
         names = [manga.findNext('p', {'class': 'name'}).text.strip() for manga in mangas]
         url = [manga.get('href').strip() for manga in mangas]
-        images = [manga.find("img").get('data-src').strip() for manga in mangas]
+        images = [manga.find("img").get('src').strip() for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
