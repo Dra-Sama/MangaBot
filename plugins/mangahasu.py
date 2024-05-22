@@ -76,7 +76,7 @@ class MangaHasuClient(MangaClient):
 
         imgs = div.findAll('img')
 
-        images_url = [quote(img.get('src'), safe=':/%') for img in imgs]
+        images_url = [quote(img.get('data-src'), safe=':/%') for img in imgs]
 
         return images_url
 
