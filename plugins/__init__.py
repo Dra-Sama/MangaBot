@@ -17,3 +17,4 @@ from .ninemanga import NineMangaClient
 from .likemanga import LikemangaClient
 from .comick import ComickClient
 from .novelbuddy import NovelBuddyClient
+from .mangasee import MangaSeeClient
