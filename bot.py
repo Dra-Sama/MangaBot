@@ -17,7 +17,7 @@ from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikemangaClient, \
     KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient, \
-    NovelBuddyClient
+    NovelBuddyClient,  MangaSeeClient
 import os
 
 from pyrogram import Client, filters
@@ -49,7 +49,8 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "MagaKakalot": MangaKakalotClient(),
         "Manganelo": ManganeloClient(),
         "Manganato": ManganatoClient(),
-        "KissManga": KissMangaClient(),
+        #"KissManga": KissMangaClient(),
+        "MangaSee":  MangaSeeClient(),
         "MangaHasu": MangaHasuClient(),
         "MangaBuddy": MangaBuddyClient(),
         "AsuraScans": AsuraScansClient(),
