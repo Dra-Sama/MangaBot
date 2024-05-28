@@ -30,10 +30,9 @@ class LikeMangaClient(MangaClient):
 
         cards = container.find_all("div", {"class": "card"})
         
-        u = "https://likemanga.io/"
-
         mangas = [card.findNext('a') for card in cards]
         names = [manga.findNext("img").get("alt") for manga in mangas]
+        u = "https://likemanga.io/"
         url = [u + manga.get("href") for manga in mangas]
         images = [u + manga.findNext("img").get("src") for manga in mangas]
 
