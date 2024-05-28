@@ -44,31 +44,29 @@ class LikemangaClient(MangaClient):
         
         items = [li.findNext('a') for li in lis]
         
-        links = [item.get("href") for item in items]
-        texts = [item.string.strip() for item in items]
-        
+        url = [item.get("href") for item in items]
+        desired_url = base_url + url
+        links = desired_url
+            
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
+    
 
-    def updates_from_page(self, page: bytes):
-        bs = BeautifulSoup(page, "html.parser")
+    def updates_from_page(self, content):
+        bs = BeautifulSoup(content, "html.parser")
 
-        div = bs.find('div', {'class': 'st_content'})
-
-        manga_items = div.find_all('div', {'class': 'info-manga'})
+        manga_items = bs.find_all("div", {"class": "utao"})
 
         urls = dict()
 
         for manga_item in manga_items:
+            manga_url = manga_item.findNext("a").get("href")
 
-            manga_url = manga_item.findNext('a',  {"class": "name-manga"}).get('href')
-
-            chapter_item = manga_item.findNext("a", {"class": "name-chapter"})
-            if not chapter_item:
+            if manga_url in urls:
                 continue
-            chapter_url = chapter_item.get('href')
 
-            if manga_url not in urls:
-                urls[manga_url] = chapter_url
+            chapter_url = manga_item.findNext("ul").findNext("a").get("href")
+
+            urls[manga_url] = chapter_url
 
         return urls
 
@@ -118,12 +116,12 @@ class LikemangaClient(MangaClient):
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
 
-        content = await self.get_url(self.base_url.geturl())
+        content = await self.get_url(self.updates_url)
 
         updates = self.updates_from_page(content)
 
         updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
-        not_updated = [lc.url for lc in last_chapters if not updates.get(lc.url)
-                       or updates.get(lc.url) == lc.chapter_url]
+        not_updated = [lc.url for lc in last_chapters if
+                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
 
         return updated, not_updated
