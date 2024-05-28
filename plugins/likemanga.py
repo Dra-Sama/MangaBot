@@ -22,12 +22,14 @@ class LikemangaClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        cards = bs.find_all("li")[:-1]
+        container = bs.find("div", {"class": "card-body"})
 
-        mangas = [card.a for card in cards]
-        names = [manga.findNext('p', {'class': 'name'}).text.strip() for manga in mangas]
-        url = [manga.get('href').strip() for manga in mangas]
-        images = [manga.find("img").get('src').strip() for manga in mangas]
+        cards = container.find_all("div", {"class": "card"})
+
+        mangas = [card.findNext('a') for card in cards]
+        names = [manga.findNext("img").get("alt") for manga in mangas]
+        url = [manga.get("href") for manga in mangas]
+        images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
