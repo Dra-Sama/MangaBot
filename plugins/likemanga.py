@@ -7,7 +7,7 @@ from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
 
-class LikemangaClient(MangaClient):
+class LikeMangaClient(MangaClient):
     base_url = urlparse("https://likemanga.io/")
     search_url = urljoin(base_url.geturl(), "search/autosearch")
     search_param = 'key'
@@ -16,7 +16,7 @@ class LikemangaClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="Likemanga", **kwargs):
+    def __init__(self, *args, name="LikeManga", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
@@ -44,10 +44,8 @@ class LikemangaClient(MangaClient):
         
         items = [li.findNext('a') for li in lis]
         
-        url = [item.get("href") for item in items]
-        desired_url = base_url + url
-        links = desired_url
-            
+        links = [self.search_url + manga.get("href") for item in items]
+        
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
     
 
