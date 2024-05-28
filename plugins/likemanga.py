@@ -85,7 +85,7 @@ class LikeMangaClient(MangaClient):
         
         imgs = div.findAll('img')
         
-        images_url = [quote(img.get('src') or '', safe=':/%') for img in imgs]
+        images_url = [quote(img.get('src'), safe=':/%') if img.get('src') else '' for img in imgs]
   
         return images_url
 
