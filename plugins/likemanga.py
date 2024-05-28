@@ -85,7 +85,7 @@ class LikeMangaClient(MangaClient):
         
         imgs = div.findAll('img')
         
-        images_url = [quote(img.get('src'), safe=':/%') for img in imgs]
+        images_url = [quote(img.get('src') or '', safe=':/%') for img in imgs]
   
         return images_url
 
@@ -95,7 +95,7 @@ class LikeMangaClient(MangaClient):
         request_url = self.search_url
 
         if query:
-            request_url += f'?act=search&f[status]=all&f[sortby]=lastest-chap&f[keyword]={query}'
+            request_url += f'?act=search&f[status]=all&f[sortby]=lastest-chap&f[keyword]='
 
         content = await self.get_url(request_url)
 
