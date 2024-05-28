@@ -32,9 +32,9 @@ class LikeMangaClient(MangaClient):
         
         mangas = [card.findNext('a') for card in cards]
         names = [manga.findNext("img").get("alt") for manga in mangas]
-        #u = "https://likemanga.io/"
-        url = [manga.get("href") for manga in mangas]
-        images = [manga.findNext("img").get("src") for manga in mangas]
+        u = "https://likemanga.io/"
+        url = [u + manga.get("href") for manga in mangas]
+        images = [u + manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -97,7 +97,7 @@ class LikeMangaClient(MangaClient):
         request_url = self.search_url
 
         if query:
-            request_url += f'act=search&f[status]=all&f[sortby]=lastest-chap&f[keyword]={query}'
+            request_url += f'?act=search&f[status]=all&f[sortby]=lastest-chap&f[keyword]={query}'
 
         content = await self.get_url(request_url)
 
