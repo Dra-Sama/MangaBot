@@ -15,7 +15,7 @@ from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
 from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
-    MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikemangaClient, \
+    MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikeMangaClient, \
     KissMangaClient, MangatigreClient, MangaHasuClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient, \
     NovelBuddyClient,  MangaSeeClient
 import os
@@ -55,7 +55,7 @@ plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
         "MangaBuddy": MangaBuddyClient(),
         "AsuraScans": AsuraScansClient(),
         "NineManga": NineMangaClient(),        
-        #"Likemanga": LikemangaClient(),
+        "LikeManga": LikeMangaClient(),
         #"Comick": ComickClient(),
         #"NovelBuddy": NovelBuddyClient(), 
           },
