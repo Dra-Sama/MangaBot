@@ -88,7 +88,7 @@ class LikeMangaClient(MangaClient):
         imgs = div.findAll('img')
         
         images_url = [quote(img.get('src'), safe=':/%') for img in imgs]
-
+  
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
