@@ -37,15 +37,16 @@ class LikemangaClient(MangaClient):
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
-
-        div = bs.find("div", {"class": "list-chapter"})
-
-        lis = div.findAll('tr')[1:]
-        a_elems = [li.find('a') for li in lis]
-
-        links = [a.get('href') for a in a_elems]
-        texts = [(a.text if not a.text.startswith(manga.name) else a.text[len(manga.name):]).strip() for a in a_elems]
-
+        
+        container = bs.find("ul", {"id": "list_chapter_id_detail"})
+        
+        lis = container.find_all("li", {"class": "wp-manga-chapter"})
+        
+        items = [li.findNext('a') for li in lis]
+        
+        links = [item.get("href") for item in items]
+        texts = [item.string.strip() for item in items]
+        
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
     def updates_from_page(self, page: bytes):
