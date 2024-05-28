@@ -84,13 +84,14 @@ class LikemangaClient(MangaClient):
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
+        query = quote_plus(query)
+
         request_url = self.search_url
 
-        data = {
-            self.search_param: query
-        }
+        if query:
+            request_url += f'act=search&f[status]=all&f[sortby]=lastest-chap&f[keyword]={query}'
 
-        content = await self.get_url(request_url, data=data, method='post')
+        content = await self.get_url(request_url)
 
         return self.mangas_from_page(content)
 
