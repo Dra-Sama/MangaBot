@@ -11,7 +11,7 @@ from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
 
-class LikemangaClient(MangaClient):
+class LikeMangaClient(MangaClient):
     base_url = urlparse("https://likemanga.io/")
     search_url = base_url.geturl()
     updates_url = base_url.geturl()
@@ -20,7 +20,7 @@ class LikemangaClient(MangaClient):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="Likemanga", **kwargs):
+    def __init__(self, *args, name="LikeManga", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
