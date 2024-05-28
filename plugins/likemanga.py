@@ -28,7 +28,7 @@ class LikeMangaClient(MangaClient):
 
         container = bs.find("div", {"class": "card-body"})
 
-        cards = container.find_all("div", {"class": "card"})
+        cards = container.findAll("div", {"class": "card"})
         
         mangas = [card.findNext('a') for card in cards]
         names = [manga.findNext("img").get("alt") for manga in mangas]
