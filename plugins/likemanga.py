@@ -1,3 +1,7 @@
+#(©)Wizard_Bots [telegram.me/Wizard_Bots]
+#(©)Shanks_kun
+
+
 from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
@@ -7,16 +11,16 @@ from models import LastChapter
 from plugins.client import MangaClient, MangaCard, MangaChapter
 
 
-class LikeMangaClient(MangaClient):
+class LikemangaClient(MangaClient):
     base_url = urlparse("https://likemanga.io/")
-    search_url = urljoin(base_url.geturl(), "search/autosearch")
-    search_param = 'key'
+    search_url = base_url.geturl()
+    updates_url = base_url.geturl()
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="LikeManga", **kwargs):
+    def __init__(self, *args, name="Likemanga", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
@@ -25,11 +29,13 @@ class LikeMangaClient(MangaClient):
         container = bs.find("div", {"class": "card-body"})
 
         cards = container.find_all("div", {"class": "card"})
+        
+        u = "https://likemanga.io/"
 
         mangas = [card.findNext('a') for card in cards]
         names = [manga.findNext("img").get("alt") for manga in mangas]
-        url = [manga.get("href") for manga in mangas]
-        images = [manga.findNext("img").get("src") for manga in mangas]
+        url = [u + manga.get("href") for manga in mangas]
+        images = [u + manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -45,25 +51,31 @@ class LikeMangaClient(MangaClient):
         items = [li.findNext('a') for li in lis]
         
         url = "https://likemanga.io/"
-        links = [url + manga.get("href") for item in items]
+        links = [url + item.get("href") for item in items]
         
+        texts = [item.string.strip() for item in items]
+
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
     
 
     def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
+        
+        container = bs.find("div", {"class": "card-body"})
 
-        manga_items = bs.find_all("div", {"class": "utao"})
+        manga_items = container.find_all("div", {"class": "card"})
 
         urls = dict()
 
         for manga_item in manga_items:
-            manga_url = manga_item.findNext("a").get("href")
+            a = "https://likemanga.io/"
+            manga_url = a + manga_item.findNext("a").get("href")
 
             if manga_url in urls:
                 continue
-
-            chapter_url = manga_item.findNext("ul").findNext("a").get("href")
+                
+            b = "https://likemanga.io/"
+            chapter_url = b + manga_item.findNext("ul").findNext("a").get("href")
 
             urls[manga_url] = chapter_url
 
