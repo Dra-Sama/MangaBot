@@ -36,6 +36,8 @@ class LikeMangaClient(MangaClient):
         return mangas
 
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
+        url = "https://likemanga.io/"
+        
         bs = BeautifulSoup(page, "html.parser")
         
         container = bs.find("ul", {"id": "list_chapter_id_detail"})
@@ -44,7 +46,7 @@ class LikeMangaClient(MangaClient):
         
         items = [li.findNext('a') for li in lis]
         
-        links = [self.search_url + manga.get("href") for item in items]
+        links = [url + manga.get("href") for item in items]
         
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
     
