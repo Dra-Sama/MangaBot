@@ -67,14 +67,12 @@ class LikeMangaClient(MangaClient):
         urls = dict()
 
         for manga_item in manga_items:
-            a = "https://likemanga.io/"
-            manga_url = a + manga_item.findNext("a").get("href")
+            manga_url = urljoin(self.base_url.geturl(), manga_item.findNext("a").get("href"))
 
             if manga_url in urls:
                 continue
                 
-            b = "https://likemanga.io/"
-            chapter_url = b + manga_item.findNext("ul").findNext("a").get("href")
+            chapter_url = urljoin(self.base_url.geturl(), manga_item.findNext("ul").findNext("a").get("href"))
 
             urls[manga_url] = chapter_url
 
