@@ -28,13 +28,13 @@ class LikeMangaClient(MangaClient):
 
         container = bs.find("div", {"class": "card-body"})
 
-        cards = container.find_all("div", {"class": "col-lg-3 col-md-4 col-sm-4 col-6 video position-relative mb-2"})
+        cards = container.find_all("div", {"class": "card"})
         
         mangas = [card.findNext('a') for card in cards]
         names = [manga.findNext("img").get("alt") for manga in mangas]
-        u = "https://likemanga.io/"
-        url = [u + manga.get("href") for manga in mangas]
-        images = [u + manga.findNext("img").get("src") for manga in mangas]
+        #u = "https://likemanga.io/"
+        url = [manga.get("href") for manga in mangas]
+        images = [manga.findNext("img").get("src") for manga in mangas]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
