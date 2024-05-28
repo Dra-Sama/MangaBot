@@ -78,7 +78,7 @@ class LikeMangaClient(MangaClient):
 
         return urls
 
-    def pictures_from_chapters(self, content: bytes, response=None):
+    async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
         
         div = bs.find('div', {'class': 'reading-detail box_doc'})
