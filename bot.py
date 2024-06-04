@@ -704,12 +704,12 @@ async def chapter_creation(worker_id: int = 0):
     """
     logger.debug(f"Worker {worker_id}: Starting worker")
     while True:
+        channel = env_vars.get('CHANNEL')
         chapter, chat_id = await pdf_queue.get(worker_id)
         logger.debug(f"Worker {worker_id}: Got chapter '{chapter.name}' from queue for user '{chat_id}'")
         try:
             await send_manga_chapter(bot, chapter, chat_id)
-            await send_manga_chapter(bot, chapter, -1001627912889)
-            await bot.send.message(-1001627912889, f"Send chapter '{chapter.name}' from queue for user '{chat_id}'")
+            await send_manga_chapter(bot, chapter, channel)
         except:
             logger.exception(f"Error sending chapter {chapter.name} to user {chat_id}")
         finally:
