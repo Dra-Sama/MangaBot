@@ -704,7 +704,7 @@ async def chapter_creation(worker_id: int = 0):
     """
     logger.debug(f"Worker {worker_id}: Starting worker")
     while True:
-        channel = env_vars.get('CHANNEL')
+        channel = env_vars.get('CACHE_CHANNEL')
         chapter, chat_id = await pdf_queue.get(worker_id)
         logger.debug(f"Worker {worker_id}: Got chapter '{chapter.name}' from queue for user '{chat_id}'")
         try:
