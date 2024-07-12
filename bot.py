@@ -715,9 +715,4 @@ async def chapter_creation(worker_id: int = 0):
         finally:
             pdf_queue.release(chat_id)
 
-
-
-    else:
-        msg = await message.reply(REPLY_ERROR)
-        await asyncio.sleep(8)
-        await msg.delete()
+   
