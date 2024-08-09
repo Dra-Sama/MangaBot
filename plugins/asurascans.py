@@ -26,14 +26,14 @@ class AsuraScansClient(MangaClient):
     def mangas_from_page(self, page: bytes):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"class": "listupd"})
+        container = bs.find("div", {"class": "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 p-4"})
 
-        cards = container.find_all("div", {"class": "bs"})
+        cards = container.find_all("div", {"class": "flex h-[250px] md:h-[200px] overflow-hidden relative hover:opacity-60"})
 
-        mangas = [card.findNext('a') for card in cards]
-        names = [manga.get('title') for manga in mangas]
-        url = [manga.get("href") for manga in mangas]
-        images = [manga.findNext("img").get("src") for manga in mangas]
+        names = [containers.findChild('span', {'class': 'block text-[13.3px] font-bold'}).string.strip() for containers in container]
+        l = "https://asuracomic.net/"
+        url = [l + containers.get("href") for containers in container]
+        images = [card.findNext("img").get("src") for card in cards]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
@@ -42,32 +42,30 @@ class AsuraScansClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        container = bs.find("div", {"id": "chapterlist"})
+        li = bs.findAll("a", {"class": "block visited:text-themecolor"})
 
-        lis = container.find_all("li")
-
-        items = [li.findNext('a') for li in lis]
-
-        links = [item.get("href") for item in items]
-        texts = [item.findChild('span', {'class': 'chapternum'}).string.strip() for item in items]
+        a = "https://asuracomic.net/series/"
+        links = [a + containers.get("href") for containers in li]
+        b = "Ch : "
+        texts = [b + (sub.split('/')[6]) for sub in links]
 
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
     def updates_from_page(self, content):
         bs = BeautifulSoup(content, "html.parser")
 
-        manga_items = bs.find_all("div", {"class": "utao"})
+        manga_items = bs.find_all("span", {"class": "text-[15px] font-medium hover:text-themecolor hover:cursor-pointer"})
 
         urls = dict()
 
         for manga_item in manga_items:
-            manga_url = manga_item.findNext("a").get("href")
+            manga_url =  urljoin(self.base_url.geturl(), manga_item.findNext("a").get("href"))
 
             if manga_url in urls:
                 continue
 
-            chapter_url = manga_item.findNext("ul").findNext("a").get("href")
-
+            chapter_url = urljoin(self.base_url.geturl(), manga_item.findNext("span").findNext("a").get("href"))
+            
             urls[manga_url] = chapter_url
 
         return urls
@@ -75,11 +73,9 @@ class AsuraScansClient(MangaClient):
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
-        container = bs.find("div", {"id": "readerarea"})
+        container = bs.find("div", {"class": "py-8 -mx-5 md:mx-0 flex flex-col items-center justify-center"})
 
-        images = container.find_all("img")
-
-        images_url = [quote(img.get('src'), safe=':/%') for img in images]
+        images_url = [quote(containers.findNext("img").get("src"), safe=':/%') for containers in container]
 
         return images_url
 
@@ -89,7 +85,7 @@ class AsuraScansClient(MangaClient):
         request_url = self.search_url
 
         if query:
-            request_url += f'?{self.search_param}={query}'
+            request_url += f'series?page=1&name={query}'
 
         content = await self.get_url(request_url)
 
