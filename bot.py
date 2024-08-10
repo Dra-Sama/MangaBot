@@ -13,7 +13,6 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from config import env_vars, dbname
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
-from img2tph.core import img2tph
 from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
     MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikeMangaClient, \
     KissMangaClient, MangatigreClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient, \
@@ -412,7 +411,6 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
     download = not chapter_file
     download = download or options & OutputOptions.PDF and not chapter_file.file_id
     download = download or options & OutputOptions.CBZ and not chapter_file.cbz_id
-    download = download or options & OutputOptions.Telegraph and not chapter_file.telegraph_url
     download = download and options & ((1 << len(OutputOptions)) - 1) != 0
 
     if download:
@@ -425,11 +423,6 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
 
     chapter_file = chapter_file or ChapterFile(url=chapter.url)
 
-    if download and not chapter_file.telegraph_url:
-        chapter_file.telegraph_url = await img2tph(chapter, clean(f'{chapter.manga.name} {chapter.name}'))
-
-    if options & OutputOptions.Telegraph:
-        success_caption += f'[Read on telegraph]({chapter_file.telegraph_url})\n'
     success_caption += f'[Read on website]({chapter.get_url()})'
 
     ch_name = clean(f'{chapter.name} - {clean(chapter.manga.name, 25)}', 45)
