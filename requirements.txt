@@ -10,7 +10,6 @@ aiosqlite
 fpdf2~=2.6.0
 SQLAlchemy~=1.4.31
 psutil~=5.9.0
-telegraph[aio]~=2.1.0
 alembic
 loguru
-python-telegram-bot
+
