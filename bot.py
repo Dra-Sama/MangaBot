@@ -76,7 +76,6 @@ with open("tools/help_message.txt", "r") as f:
 class OutputOptions(enum.IntEnum):
     PDF = 1
     CBZ = 2
-    Telegraph = 4
 
     def __and__(self, other):
         return self.value & other
