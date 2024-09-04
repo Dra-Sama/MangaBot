@@ -123,13 +123,17 @@ class LikeMangaClient(MangaClient):
         return url.startswith(self.base_url.geturl())
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
-
         content = await self.get_url(self.updates_url)
-
-        updates = self.updates_from_page(content)
-
-        updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
-        not_updated = [lc.url for lc in last_chapters if
-                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
-
+        
+        updates = await self.updates_from_page(content)
+        
+        updated = []
+        not_updated = []
+        for lc in last_chapters:
+            if lc.url in updates.keys():
+                if updates.get(lc.url) != lc.chapter_url:
+                    updated.append(lc.url)
+            elif updates.get(lc.url) == lc.chapter_url:
+                not_updated.append(lc.url)
+                
         return updated, not_updated
