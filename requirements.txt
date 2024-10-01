@@ -13,3 +13,5 @@ SQLAlchemy
 psutil~=5.9.0
 alembic
 loguru
+flask
+gunicorn
