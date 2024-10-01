@@ -18,7 +18,7 @@ class ChapterFile(SQLModel, table=True):
     file_unique_id: Optional[str]
     cbz_id: Optional[str]
     cbz_unique_id: Optional[str]
-    telegraph_url: Optional[str]
+    #telegraph_url: Optional[str]
 
 
 class MangaOutput(SQLModel, table=True):
@@ -99,23 +99,4 @@ class DB(metaclass=LanguageSingleton):
             async with session.begin():
                 statement = delete(Subscription).where(Subscription.user_id == user_id)
                 await session.exec(statement=statement)
-                
-    """ async def present_user(user_id : int):
-        found = user_data.find_one({'_id': user_id})
-           return bool(found)
 
-     async def add_user(user_id: int):
-        user_data.insert_one({'_id': user_id})
-          return
-
-      async def full_userbase():
-       user_docs = user_data.find()
-        user_ids = []
-         for doc in user_docs:
-          user_ids.append(doc['_id'])
-        
-        return user_ids
-
-    async def del_user(user_id: int):
-        user_data.delete_one({'_id': user_id})
-         return """
