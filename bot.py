@@ -13,10 +13,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from config import env_vars, dbname
 from img2cbz.core import fld2cbz
 from img2pdf.core import fld2pdf, fld2thumb
-from plugins import MangaClient, ManhuaKoClient, MangaCard, MangaChapter, ManhuaPlusClient, TMOClient, MangaDexClient, \
-    MangasInClient, McReaderClient, MangaKakalotClient, ManganeloClient, ManganatoClient, LikeMangaClient, \
-    KissMangaClient, MangatigreClient, MangaBuddyClient, AsuraScansClient, NineMangaClient, ComickClient, \
-    MangaSeeClient
+from plugins import *
 import os
 
 from pyrogram import Client, filters
