@@ -1,12 +1,7 @@
 import asyncio as aio
-import os
-
-from logger import logger
-from bot import bot, manga_updater, chapter_creation
-from models import DB
+from bot import *
 
 
-PIC = "https://graph.org//file/925c5eee60879804be1d9.jpg"
 async def async_main():
     db = DB()
     await db.connect()
