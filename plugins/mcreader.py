@@ -1,39 +1,39 @@
+import re
 from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
-import json
-import re
 
 from bs4 import BeautifulSoup
-from bs4.element import PageElement
 
 from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
 
 
-class McReaderClient(MangaClient):
+class MgekoClient(MangaClient):
 
-    base_url = urlparse("https://www.mcreader.net/")
-    search_url = urljoin(base_url.geturl(), 'autocomplete')
-    search_param = 'term'
-    manga_url = urljoin(base_url.geturl(), 'manga')
-    chapters = 'all-chapters/'
-    latest_uploads = urljoin(base_url.geturl(), 'jumbo/manga/')
-    manga_cover = 'https://images.novel-fast.club/avatar/288x412'
+    base_url = urlparse("https://www.mgeko.cc/")
+    search_url = base_url.geturl()
+    updates_url = urljoin(base_url.geturl(), "jumbo/manga/")
+    search_param = 'search/?search'
 
     pre_headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0'
     }
 
-    def __init__(self, *args, name="McReader", **kwargs):
+    def __init__(self, *args, name="Mgeko", **kwargs):
         super().__init__(*args, name=name, headers=self.pre_headers, **kwargs)
 
     def mangas_from_page(self, page: bytes):
-        mangas = json.loads(page)
+        bs = BeautifulSoup(page, "html.parser")
 
-        names = [manga['manga_name'] for manga in mangas]
-        url = [f'{self.manga_url}/{manga["manga_slug"]}/' for manga in mangas]
-
-        images = [f'{self.manga_cover}/{manga["manga_cover"]}' for manga in mangas]
-
+        cards = bs.find_all("li", {"class": "novel-item"})
+        
+        mangas = [card.findNext('a') for card in cards]
+        names = [manga.get("title") for manga in mangas]
+        u = "https://www.mgeko.cc"
+        url = [u + manga.get("href") for manga in mangas]
+        im = "https://cdn.mangageko.com/avatar/288x412"
+        images = [im + manga.findNext("img").get("data-src") for manga in mangas]
+        #images = []
+        
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
 
         return mangas
@@ -41,69 +41,71 @@ class McReaderClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        ul = bs.find('ul', {'class': 'chapter-list'})
-
+        ul = bs.find('div', {'id': 'chpagedlist'})
+        
         lis = ul.find_all('li')
-
+        
         items = [li.findNext('a') for li in lis]
-
-        links = [urljoin(self.base_url.geturl(), item.get('href')) for item in items]
-        texts = [item.findNext('strong', {'class': 'chapter-title'}).string.strip().split('-eng')[0].replace('-', '.') for item in items]
-
+        a = "https://www.mgeko.cc"
+        links = [a + item.get('href') for item in items]
+        match = [item.get("title") for item in items]
+        texts =  ["Chapter " + str(re.search(r"(\d+(?:\.\d+)?)", tex).group(1)) for tex in match]
+        
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    def updates_from_page(self, page: bytes):
-        bs = BeautifulSoup(page, "html.parser")
-
-        ul = bs.find('ul', {'class': 'novel-list'})
-
-        manga_items: List[PageElement] = ul.find_all("li")
-
+    async def updates_from_page(self):
+        content = await self.get_url(self.updates_url)
+        
+        bs = BeautifulSoup(content, "html.parser")
+        
+        manga_items = bs.find_all("li", {"class": "novel-item"})
+        
         urls = dict()
+        manga_urls =  [urljoin(self.base_url.geturl(), manga_item.findNext("a").get("href")) for manga_item in manga_items]
+        for manga_url in manga_urls:
+            cs = await self.get_url(manga_url)
 
-        for manga_item in manga_items:
-
-            manga_url = urljoin(self.base_url.geturl(), manga_item.findNext('a').get('href'))
-
-            if manga_url in urls:
-                continue
-
-            chapter_item = manga_item.findNext("h5", {"class": "chapter-title"})
-            chapter_text: str = chapter_item.text.strip()
-            m = re.match(r'.* (.*)-eng.*', chapter_text)
-            number = m.group(1)
-            number.replace('-', '.')
-
-            urls[manga_url] = number
-
+            scrap = BeautifulSoup(cs, "html.parser")
+            
+            ul = scrap.find('div', {'id': 'chpagedlist'})
+            
+            lis = ul.find_all('li')
+            items = [li.findNext('a') for li in lis]
+            a = "https://www.mgeko.cc/"
+            links = [a + item.get('href') for item in items][0]
+            
+            urls[manga_url] = links
+            
         return urls
 
     async def pictures_from_chapters(self, content: bytes, response=None):
         bs = BeautifulSoup(content, "html.parser")
 
         ul = bs.find("div", {"id": "chapter-reader"})
-
+        
         images = ul.find_all('img')
-
+        
         images_url = [quote(img.get('src'), safe=':/%') for img in images]
-
+        
         return images_url
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
-        query = quote(query)
+        query = quote_plus(query)
 
         request_url = self.search_url
 
         if query:
-            request_url += f'?{self.search_param}={query}'
+            #https://www.mgeko.cc/search/?search=One
+            request_url += f'search/?search={query}'
 
         content = await self.get_url(request_url)
 
-        return self.mangas_from_page(content)[(page - 1) * 15:page * 15]
+        return self.mangas_from_page(content)
 
     async def get_chapters(self, manga_card: MangaCard, page: int = 1) -> List[MangaChapter]:
-
-        request_url = f'{manga_card.url}/{self.chapters}'
+        request_url = f'{manga_card.url}'
+        
+        request_url += "all-chapters/"
 
         content = await self.get_url(request_url)
 
@@ -112,7 +114,7 @@ class McReaderClient(MangaClient):
     async def iter_chapters(self, manga_url: str, manga_name) -> AsyncIterable[MangaChapter]:
         manga_card = MangaCard(self, manga_name, manga_url, '')
 
-        request_url = f'{manga_card.url}/{self.chapters}'
+        request_url = f'{manga_card.url}'
 
         content = await self.get_url(request_url)
 
@@ -122,16 +124,16 @@ class McReaderClient(MangaClient):
     async def contains_url(self, url: str):
         return url.startswith(self.base_url.geturl())
 
-    def number_from_url(self, url: str):
-        return url.split('chapter-')[1].split('-eng')[0].replace('-', '.')
-
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
+        updates = await self.updates_from_page()
 
-        content = await self.get_url(self.latest_uploads)
-
-        updates = self.updates_from_page(content)
-
-        updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != self.number_from_url(lc.chapter_url)]
-        not_updated = [lc.url for lc in last_chapters if not updates.get(lc.url) or updates.get(lc.url) == self.number_from_url(lc.chapter_url)]
-
+        updated = []
+        not_updated = []
+        for lc in last_chapters:
+            if lc.url in updates.keys():
+                if updates.get(lc.url) != lc.chapter_url:
+                    updated.append(lc.url)
+            elif updates.get(lc.url) == lc.chapter_url:
+                not_updated.append(lc.url)
+                
         return updated, not_updated
