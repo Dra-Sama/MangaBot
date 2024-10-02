@@ -40,7 +40,7 @@ locks: Dict[int, asyncio.Lock] = dict()
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
         "MangaDex": MangaDexClient(),
-        "Manhuaplus": ManhuaPlusClient(),
+       # "Manhuaplus": ManhuaPlusClient(),
         "McReader": McReaderClient(),
         "MagaKakalot": MangaKakalotClient(),
         "Manganelo": ManganeloClient(),
@@ -84,7 +84,8 @@ class OutputOptions(enum.IntEnum):
         return self.value | other
 
 
-disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus", "[🇪🇸 ES] MangasIn", "[🇪🇸 ES] Likemanga"]
+#disabled = ["[🇬🇧 EN] McReader", "[🇬🇧 EN] Manhuaplus", "[🇪🇸 ES] MangasIn", "[🇪🇸 ES] Likemanga"]
+disabled = []
 
 plugins = dict()
 for lang, plugin_dict in plugin_dicts.items():
@@ -421,7 +422,18 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
 
     success_caption += f'[Read on website]({chapter.get_url()})'
 
-    ch_name = clean(f'{chapter.name} - {clean(chapter.manga.name, 25)}', 45)
+    if env_vars["FNAME"]:
+        try:
+            try: chap_num = re.search(r"Vol (\d+(?:\.\d+)?) Chapter (\d+(?:\.\d+)?)", chapter.name).group(2)
+            except: chap_num = re.search(r"(\d+(?:\.\d+)?)", chapter.name).group(1)
+            chap_name = clean(chapter.manga.name, 20)
+            ch_name = env_vars["FNAME"]
+            ch_name = ch_name.replace("{chap_num}", str(chap_num))
+            ch_name = ch_name.replace("{chap_name}", str(chap_name))
+        except Exception as e:
+            print(e)
+    else:
+        ch_name = clean(f'{chapter.name} - {clean(chapter.manga.name, 25)}', 45)
 
     media_docs = []
 
@@ -703,5 +715,3 @@ async def chapter_creation(worker_id: int = 0):
             logger.exception(f"Error sending chapter {chapter.name} to user {chat_id}")
         finally:
             pdf_queue.release(chat_id)
-
-   
