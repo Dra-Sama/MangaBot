@@ -1,6 +1,3 @@
-#THis Code is made by Wizard Bots on telegram
-# t.me/Wizard_Bots
-
 from typing import List, AsyncIterable
 from urllib.parse import urlparse, urljoin, quote, quote_plus
 
@@ -31,8 +28,8 @@ class AsuraScansClient(MangaClient):
         cards = container.find_all("div", {"class": "flex h-[250px] md:h-[200px] overflow-hidden relative hover:opacity-60"})
 
         names = [containers.findChild('span', {'class': 'block text-[13.3px] font-bold'}).string.strip() for containers in container]
-        l = "https://asuracomic.net/"
-        url = [l + containers.get("href") for containers in container]
+        
+        url = [self.search_url + containers.get("href") for containers in container]
         images = [card.findNext("img").get("src") for card in cards]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
@@ -42,17 +39,20 @@ class AsuraScansClient(MangaClient):
     def chapters_from_page(self, page: bytes, manga: MangaCard = None):
         bs = BeautifulSoup(page, "html.parser")
 
-        li = bs.findAll("a", {"class": "block visited:text-themecolor"})
-
+        li = bs.findAll("h3", {"class": "text-sm text-white font-medium"})
+        
         a = "https://asuracomic.net/series/"
-        links = [a + containers.get("href") for containers in li]
-        b = "Ch : "
-        texts = [b + (sub.split('/')[6]) for sub in links]
-
+        links = [a + containers.findNext("a").get("href") for containers in li]
+        
+        b = "Chapter "
+        texts = [b + str(sub.split('/')[6]) for sub in links]
+        
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    def updates_from_page(self, content):
-        bs = BeautifulSoup(content, "html.parser")
+    async def updates_from_page(self):
+        page = await self.get_url(self.updates_url)
+        
+        bs = BeautifulSoup(page, "html.parser")
 
         manga_items = bs.find_all("span", {"class": "text-[15px] font-medium hover:text-themecolor hover:cursor-pointer"})
 
@@ -113,13 +113,15 @@ class AsuraScansClient(MangaClient):
         return url.startswith(self.base_url.geturl())
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
-
-        content = await self.get_url(self.updates_url)
-
-        updates = self.updates_from_page(content)
-
-        updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
-        not_updated = [lc.url for lc in last_chapters if
-                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
-
+        updates = await self.updates_from_page()
+        
+        updated = []
+        not_updated = []
+        for lc in last_chapters:
+            if lc.url in updates.keys():
+                if updates.get(lc.url) != lc.chapter_url:
+                    updated.append(lc.url)
+                elif updates.get(lc.url) == lc.chapter_url:
+                    not_updated.append(lc.url)
+                
         return updated, not_updated
