@@ -11,14 +11,12 @@ env_vars = {
   "CACHE_CHANNEL": "",
   # Force Subs Channel username without @
   "CHANNEL": "",
-  # For Hosting at Render/Koyeb True. False For Other
-  "RENDER": "",
   # {chap_num}: Chapter Number
   # {chap_name} : Manga Name
-  "FNAME": "",
-  # Thumb Url That U Want to Add at File
-  "THUMB": ""
+  # Ex : Chapter {chap_num} {chap_name} @Manhwa_Arena
+  "FNAME": ""
 }
+
 dbname = env_vars.get('DATABASE_URL_PRIMARY') or env_vars.get('DATABASE_URL') or 'sqlite:///test.db'
 
 if dbname.startswith('postgres://'):
