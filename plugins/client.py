@@ -58,7 +58,9 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
 
     async def get_url(self, url, *args, file_name=None, cache=False, req_content=True, method='get', data=None,
                       **kwargs):
-        def response(): pass
+        def response():
+            pass
+
         response.status = "200"
         if cache:
             path = Path(f'cache/{self.name}/{file_name}')
@@ -93,7 +95,12 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
     async def set_pictures(self, manga_chapter: MangaChapter):
         requests_url = manga_chapter.url
 
-        response = await self.get(requests_url)
+        # Set manga url as the referer if there is one
+        headers = {**self.headers}
+        if manga_chapter.manga:
+            headers['referer'] = manga_chapter.manga.url
+
+        response = await self.get(requests_url, headers=headers)
 
         content = await response.read()
 
@@ -108,7 +115,7 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
         folder_name = f'{clean(manga_chapter.manga.name)}/{clean(manga_chapter.name)}'
         i = 0
         for picture in manga_chapter.pictures:
-            ext = picture.split('.')[-1]
+            ext = picture.split('.')[-1].split('?')[0].lower()
             file_name = f'{folder_name}/{format(i, "05d")}.{ext}'
             for _ in range(3):
                 req = await self.get_picture(manga_chapter, picture, file_name=file_name, cache=True,
@@ -149,3 +156,4 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
     @abstractmethod
     async def pictures_from_chapters(self, content: bytes, response=None):
         raise NotImplementedError
+
