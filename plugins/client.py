@@ -156,4 +156,3 @@ class MangaClient(ClientSession, metaclass=LanguageSingleton):
     @abstractmethod
     async def pictures_from_chapters(self, content: bytes, response=None):
         raise NotImplementedError
-
