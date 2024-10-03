@@ -49,9 +49,7 @@ class AsuraScansClient(MangaClient):
         
         return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
 
-    async def updates_from_page(self):
-        page = await self.get_url(self.updates_url)
-        
+    async def updates_from_page(self, page:bytes):
         bs = BeautifulSoup(page, "html.parser")
 
         manga_items = bs.find_all("span", {"class": "text-[15px] font-medium hover:text-themecolor hover:cursor-pointer"})
@@ -113,7 +111,9 @@ class AsuraScansClient(MangaClient):
         return url.startswith(self.base_url.geturl())
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
-        updates = await self.updates_from_page()
+        page = await self.get_url(self.updates_url)
+        
+        updates = await self.updates_from_page(page)
         
         updated = []
         not_updated = []
@@ -121,6 +121,8 @@ class AsuraScansClient(MangaClient):
             if lc.url in updates.keys():
                 if updates.get(lc.url) != lc.chapter_url:
                     updated.append(lc.url)
+                elif updates.get(lc.url) == lc.chapter_url:
+                    not_updated.append(lc.url)
                 elif updates.get(lc.url) == lc.chapter_url:
                     not_updated.append(lc.url)
                 
