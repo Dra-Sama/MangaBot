@@ -28,8 +28,8 @@ class AsuraScansClient(MangaClient):
         cards = container.find_all("div", {"class": "flex h-[250px] md:h-[200px] overflow-hidden relative hover:opacity-60"})
 
         names = [containers.findChild('span', {'class': 'block text-[13.3px] font-bold'}).string.strip() for containers in container]
-        
-        url = [self.search_url + containers.get("href") for containers in container]
+        l = "https://asuracomic.net/"
+        url = [l + containers.get("href") for containers in container]
         images = [card.findNext("img").get("src") for card in cards]
 
         mangas = [MangaCard(self, *tup) for tup in zip(names, url, images)]
