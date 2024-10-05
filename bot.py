@@ -404,8 +404,6 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
         f'{chapter.get_url()}'
     ])
 
-    success_caption = f'{chapter.manga.name} - {chapter.name}\n'
-
     download = not chapter_file
     download = download or options & OutputOptions.PDF and not chapter_file.file_id
     download = download or options & OutputOptions.CBZ and not chapter_file.cbz_id
@@ -417,11 +415,12 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
             return await client.send_message(chat_id,
                                           f'There was an error parsing this chapter or chapter is missing' +
                                           f', please check the chapter at the web\n\n{error_caption}')
-        thumb_path = fld2thumb(pictures_folder)
+        if env_vars["THUMB"]:
+            thumb_path = env_vars["THUMB"]
+        else:
+            thumb_path = fld2thumb(pictures_folder)
 
     chapter_file = chapter_file or ChapterFile(url=chapter.url)
-
-    success_caption += f'[Read on website]({chapter.get_url()})'
 
     if env_vars["FNAME"]:
         try:
@@ -435,6 +434,8 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
             print(e)
     else:
         ch_name = clean(f'{chapter.name} - {clean(chapter.manga.name, 25)}', 45)
+        
+    success_caption = f"{ch_name}\n [Read on website]({chapter.get_url()})"
 
     media_docs = []
 
