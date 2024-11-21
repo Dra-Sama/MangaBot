@@ -36,6 +36,7 @@ favourites: Dict[str, MangaCard] = dict()
 language_query: Dict[str, Tuple[str, str]] = dict()
 users_in_channel: Dict[int, dt.datetime] = dict()
 locks: Dict[int, asyncio.Lock] = dict()
+all_search: Dict[str, str] = dict()
 
 plugin_dicts: Dict[str, Dict[str, MangaClient]] = {
     "🇬🇧 EN": {
@@ -185,7 +186,7 @@ async def on_help(client: Client, message: Message):
 
 
 @bot.on_message(filters=filters.command(['queue']))
-async def on_help(client: Client, message: Message):
+async def on_queue(client: Client, message: Message):
     await message.reply(f'Queue size: {pdf_queue.qsize()}')
 
 
@@ -292,10 +293,11 @@ async def language_click(client, callback: CallbackQuery):
         ))
     for identifier, manga_client in plugin_dicts[lang].items():
         queries[f"query_{lang}_{identifier}_{hash(query)}"] = (manga_client, query)
+    all_search[f"search_{lang}_{hash(query)}"] = (lang, query)
     await callback.message.edit(f"Language: {lang}\n\nSelect search plugin.", reply_markup=InlineKeyboardMarkup(
         split_list([InlineKeyboardButton(identifier, callback_data=f"query_{lang}_{identifier}_{hash(query)}")
                     for identifier in plugin_dicts[lang].keys() if f'[{lang}] {identifier}' not in disabled]) + [
-            [InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
+            [InlineKeyboardButton("• All •", callback_data=f"search_{lang}_{hash(query)}"), InlineKeyboardButton("◀️ Back", callback_data=f"lang_None_{hash(query)}")]]
     ))
 
 
@@ -312,6 +314,34 @@ async def plugin_click(client, callback: CallbackQuery):
                            "This is the result of your search",
                            reply_markup=InlineKeyboardMarkup([
                                [InlineKeyboardButton(result.name, callback_data=result.unique())] for result in results
+                           ]))
+
+
+async def all_click(client, callback: CallbackQuery):
+    lang, query = all_search[callback.data]
+    if not lang:
+        return await callback.message.edit("Select search languages.", reply_markup=InlineKeyboardMarkup(
+            split_list([InlineKeyboardButton(language, callback_data=f"lang_{language}_{hash(query)}")
+                        for language in plugin_dicts.keys()])
+        ))
+    results = []
+    for identifier, manga_client in plugin_dicts[lang].items():
+        try:
+            re = await manga_client.search(query)
+            if re: 
+                results.append(re[:2])
+        except:
+            pass
+    if not results:
+        await bot.send_message(callback.from_user.id, "No manga found for given query.")
+        return 
+    for res in results:
+        for result in res:
+            mangas[result.unique()] = result
+    await bot.send_message(callback.from_user.id,
+                           "This is the result of your search",
+                           reply_markup=InlineKeyboardMarkup([
+                               [InlineKeyboardButton(result.name, callback_data=result.unique())] for res in results for result in res
                            ]))
 
 
@@ -559,6 +589,8 @@ async def on_callback_query(client, callback: CallbackQuery):
         await chapter_click(client, callback.data, callback.from_user.id)
     elif callback.data in full_pages:
         await full_page_click(client, callback)
+    elif callback.data in all_search:
+        await all_click(client, callback)
     elif callback.data in favourites:
         await favourite_click(client, callback)
     elif is_pagination_data(callback):
