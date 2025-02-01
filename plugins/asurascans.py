@@ -1,11 +1,17 @@
-#asurascan.net fixed by r4h4t_69
+#AsuraScans Fixxed By @r4h4t_69 
 
-from typing import List, AsyncIterable
+
+import re
+import json 
+
+from typing import List, AsyncIterable 
+
 from urllib.parse import urlparse, urljoin, quote, quote_plus
-
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup 
 
 from plugins.client import MangaClient, MangaCard, MangaChapter, LastChapter
+import re
+
 
 
 class AsuraScansClient(MangaClient):
@@ -38,23 +44,37 @@ class AsuraScansClient(MangaClient):
 
         return mangas
 
-    def chapters_from_page(self, page: bytes, manga: MangaCard = None):
-        bs = BeautifulSoup(page, "html.parser")
+    def chapters_from_page(self, page: bytes, manga: MangaCard = None):    
+        bs = BeautifulSoup(page, "html.parser")       
+        container = bs.find("div", {
+            "class": "pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"
+        })        
+        chapters = container.find_all("div", {
+            "class": "pl-4 py-2 border rounded-md group w-full hover:bg-[#343434] cursor-pointer border-[#A2A2A2]/20 relative"
+        })       
+        base_url = "https://asuracomic.net/series/"        
+        links = []
+        titles = []
+        for chapter in chapters:
+            link_tag = chapter.find("a")
+            if link_tag:
+                relative_link = link_tag.get("href")
+                if relative_link:
+                    links.append(base_url + relative_link)
 
-        container = bs.find("div", {"class": "pl-4 pr-2 pb-4 overflow-y-auto scrollbar-thumb-themecolor scrollbar-track-transparent scrollbar-thin mr-3 max-h-[20rem] space-y-2.5"})
+                title_tag = link_tag.find("h3", {"class": "text-sm text-white font-medium flex flex-row"})
+                if title_tag:
+                    title_parts = title_tag.find_all(text=True, recursive=True)
+                    title = " ".join(part.strip() for part in title_parts if part.strip())
+                    titles.append(title)
         
-        li = container.find_all("a", {"class": "block"})
-
-        a = "https://asuracomic.net/series/"
-        links = [a + containers.get("href") for containers in li]
-        b = "Ch : "
-        texts = [b + (sub.split('/')[6]) for sub in links]
-
-        return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(texts, links)))
+        return list(map(lambda x: MangaChapter(self, x[0], x[1], manga, []), zip(titles, links)))
 
 
-    def updates_from_page(self, content):
-        bs = BeautifulSoup(content, "html.parser")
+    async def updates_from_page(self):
+        page = await self.get_url(self.updates_url)
+        
+        bs = BeautifulSoup(page, "html.parser")
 
         manga_items = bs.find_all("span", {"class": "text-[15px] font-medium hover:text-themecolor hover:cursor-pointer"})
 
@@ -72,14 +92,22 @@ class AsuraScansClient(MangaClient):
 
         return urls
 
-    async def pictures_from_chapters(self, content: bytes, response=None):
-        bs = BeautifulSoup(content, "html.parser")
-
-        container = bs.find("div", {"class": "py-8 -mx-5 md:mx-0 flex flex-col items-center justify-center"})
-
-        images_url = [quote(containers.findNext("img").get("src"), safe=':/%') for containers in container]
-
-        return images_url
+    async def pictures_from_chapters(self, data: bytes, response=None):
+       html_content = await response.text()
+       soup = BeautifulSoup(html_content, 'html.parser')
+       script_tags = soup.find_all('script')
+       for script in script_tags:
+           if script.string and "self.__next_f.push" in script.string and r'\"pages\"' in script.string:
+               script_content = script.string
+               pattern = r'\\\"pages\\\":(\[.*?])'
+               match = re.search(pattern, script_content)
+               if match:
+                   json_string = f'{{"pages":[{match.group(1)}]}}'
+                   json_string = json_string.replace(r'\"', '"')
+                   json_data = json.loads(json_string)
+                   nested_pages = json_data['pages'][0]
+                   image_links = [page['url'] for page in nested_pages if isinstance(page, dict)]
+                   return image_links                                
 
     async def search(self, query: str = "", page: int = 1) -> List[MangaCard]:
         query = quote_plus(query)
@@ -115,13 +143,15 @@ class AsuraScansClient(MangaClient):
         return url.startswith(self.base_url.geturl())
 
     async def check_updated_urls(self, last_chapters: List[LastChapter]):
-
-        content = await self.get_url(self.updates_url)
-
-        updates = self.updates_from_page(content)
-
-        updated = [lc.url for lc in last_chapters if updates.get(lc.url) and updates.get(lc.url) != lc.chapter_url]
-        not_updated = [lc.url for lc in last_chapters if
-                       not updates.get(lc.url) or updates.get(lc.url) == lc.chapter_url]
-
+        updates = await self.updates_from_page()
+        
+        updated = []
+        not_updated = []
+        for lc in last_chapters:
+            if lc.url in updates.keys():
+                if updates.get(lc.url) != lc.chapter_url:
+                    updated.append(lc.url)
+                elif updates.get(lc.url) == lc.chapter_url:
+                    not_updated.append(lc.url)
+                
         return updated, not_updated
