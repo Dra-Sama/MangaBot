@@ -9,6 +9,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+RUN python -m pip install --upgrade pip setuptools wheel
+
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install --no-cache-dir -r requirements.txt
