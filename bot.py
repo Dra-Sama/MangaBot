@@ -504,6 +504,7 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
         messages: list[Message] = await retry_on_flood(client.send_media_group)(chat_id, media_docs)
 
     # Save file ids
+    channel = env_vars.get('CACHE_CHANNEL')
     if download and media_docs:
         for message in [x for x in messages if x.document]:
             if message.document.file_name.endswith('.pdf'):
@@ -512,6 +513,9 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
             elif message.document.file_name.endswith('.cbz'):
                 chapter_file.cbz_id = message.document.file_id
                 chapter_file.cbz_unique_id = message.document.file_unique_id
+            if channel:
+                try: await message.copy(channel)
+                except: pass
 
     if download:
         shutil.rmtree(pictures_folder, ignore_errors=True)
@@ -741,12 +745,10 @@ async def chapter_creation(worker_id: int = 0):
     """
     logger.debug(f"Worker {worker_id}: Starting worker")
     while True:
-        channel = env_vars.get('CACHE_CHANNEL')
         chapter, chat_id = await pdf_queue.get(worker_id)
         logger.debug(f"Worker {worker_id}: Got chapter '{chapter.name}' from queue for user '{chat_id}'")
         try:
             await send_manga_chapter(bot, chapter, chat_id)
-            await send_manga_chapter(bot, chapter, channel)
         except:
             logger.exception(f"Error sending chapter {chapter.name} to user {chat_id}")
         finally:
