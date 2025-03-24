@@ -20,3 +20,4 @@ from .manga18fx import Manga18fxClient
 from .mangapark import MangaParkClient 
 from .flamecomics import FlameComicsClient
 from .reaperscans import ReaperScansClient
+from .omgeascans import OmgeaScansClient
