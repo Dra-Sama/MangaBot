@@ -11,7 +11,7 @@
 <p align="center">
 <div align=center>
 
-[![GitHub forks](https://img.shields.io/github/forks/Dra-Sama/mangabot?style=social)](https://github.com/weebzone/WZML/fork)
+[![GitHub forks](https://img.shields.io/github/forks/Dra-Sama/mangabot?style=social)](https://github.com/Dra-Sama/MangaBot/fork)
 [![GitHub followers](https://img.shields.io/github/followers/Dra-sama?style=social&label=Dra-sama%20Followers)](https://github.com/Dra-sama)
 
 ----
