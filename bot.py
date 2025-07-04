@@ -482,9 +482,11 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
                 pdf = await asyncio.get_running_loop().run_in_executor(None, fld2pdf, pictures_folder, ch_name)
             except Exception as e:
                 logger.exception(f'Error creating pdf for {chapter.name} - {chapter.manga.name}\n{e}')
-                return await client.send_message(chat_id, f'There was an error making the pdf for this chapter. '
-                                                       f'Forward this message to the bot group to report the '
-                                                       f'error.\n\n{error_caption}')
+                return await client.send_message(chat_id, 
+                                                 text=(f'There was an error making the pdf for this chapter. '
+                                                 f'Forward this message to the bot group to report the '
+                                                 f'error.\n\n{error_caption}'),
+                                                )
             media_docs.append(InputMediaDocument(pdf, thumb=thumb_path))
 
     if options & OutputOptions.CBZ:
@@ -495,9 +497,12 @@ async def send_manga_chapter(client: Client, chapter, chat_id):
                 cbz = await asyncio.get_running_loop().run_in_executor(None, fld2cbz, pictures_folder, ch_name)
             except Exception as e:
                 logger.exception(f'Error creating cbz for {chapter.name} - {chapter.manga.name}\n{e}')
-                return await client.send_message(chat_id, f'There was an error making the cbz for this chapter. '
-                                                       f'Forward this message to the bot group to report the '
-                                                       f'error.\n\n{error_caption}')
+                return await client.send_message(chat_id, 
+                                                 text=(
+                                                     f'There was an error making the cbz for this chapter. '
+                                                     f'Forward this message to the bot group to report the '
+                                                     f'error.\n\n{error_caption}'),
+                                                )
             media_docs.append(InputMediaDocument(cbz, thumb=thumb_path))
 
     if len(media_docs) == 0:
